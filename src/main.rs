@@ -5,12 +5,12 @@
 
 mod asset_tracking;
 mod audio;
-mod demo;
 #[cfg(feature = "dev")]
 mod dev_tools;
 mod menus;
 mod screens;
 mod theme;
+mod game;
 
 use bevy::{asset::AssetMetaCheck, prelude::*};
 
@@ -47,23 +47,21 @@ impl Plugin for AppPlugin {
         app.add_plugins((
             asset_tracking::plugin,
             audio::plugin,
-            demo::plugin,
             #[cfg(feature = "dev")]
             dev_tools::plugin,
             menus::plugin,
             screens::plugin,
             theme::plugin,
+            game::plugin,
         ));
 
         // Order new `AppSystems` variants by adding them here:
         app.configure_sets(
-            Update,
-            (
+            Update, (
                 AppSystems::TickTimers,
                 AppSystems::RecordInput,
                 AppSystems::Update,
-            )
-                .chain(),
+            ).chain(),
         );
 
         // Set up the `Pause` state.
