@@ -45,10 +45,6 @@ fn assets() -> impl Bundle {
         ["Ducky sprite", "CC0 by Caz Creates Games"],
         ["Button SFX", "CC0 by Jaszunio15"],
         ["Music", "CC BY 3.0 by Kevin MacLeod"],
-        [
-            "Bevy logo",
-            "All rights reserved by the Bevy Foundation, permission granted for splash screen use when unmodified",
-        ],
     ])
 }
 
@@ -81,11 +77,11 @@ fn grid(content: Vec<[&'static str; 2]>) -> impl Bundle {
 }
 
 fn go_back_on_click(_: Trigger<Pointer<Click>>, mut next_menu: ResMut<NextState<Menu>>) {
-    next_menu.set(Menu::Main);
+    next_menu.set(Menu::Pause);
 }
 
 fn go_back(mut next_menu: ResMut<NextState<Menu>>) {
-    next_menu.set(Menu::Main);
+    next_menu.set(Menu::Pause);
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
