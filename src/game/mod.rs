@@ -31,6 +31,10 @@ fn setup(
     commands.spawn((
         SceneRoot(asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/building-smelter.glb"))),
     ));
+    commands.spawn((
+        SceneRoot(asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/building-smelter.glb"))),
+        Transform::from_xyz(1.0, 0.0, 0.0),
+    ));
 }
 
 #[derive(Component)]
