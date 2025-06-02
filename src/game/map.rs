@@ -8,18 +8,22 @@ use bevy::{
 use crate::screens::Screen;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_plugins(MaterialPlugin::<TilemapMaterial>::default());
+    app.register_type::<TilemapMaterial>();
+    app.add_plugins(MaterialPlugin::<TilemapMaterial>{
+        prepass_enabled: false,
+        shadows_enabled: false,
+        ..default()
+    });
     app.add_systems(OnEnter(Screen::Gameplay), setup);
 }
 
 /**
  * Shader for drawing the tilemap.
  */
-#[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
+#[derive(Asset, Reflect, AsBindGroup, Debug, Clone)]
 pub struct TilemapMaterial {
     #[texture(0)] #[sampler(1)] tiles: Handle<Image>,
 }
-
 
 impl Material for TilemapMaterial {
     fn vertex_shader() -> ShaderRef {
