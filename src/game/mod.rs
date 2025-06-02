@@ -55,7 +55,7 @@ fn orbit_camera(
 ) {
     let radius = 50.0;
     let elevation = 50.0;
-    let speed = 0.5; // radians per second
+    let speed = 0.2; // radians per second
 
     let angle = time.elapsed_secs() * speed;
     let x = radius * angle.cos();
