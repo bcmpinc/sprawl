@@ -1,12 +1,14 @@
 use bevy::{
-    asset::RenderAssetUsages, prelude::*, render::{mesh::PrimitiveTopology, render_resource::{AsBindGroup, ShaderRef}}, sprite::{Material2d, Material2dPlugin}
+    asset::RenderAssetUsages,
+    prelude::*,
+    render::{mesh::PrimitiveTopology, render_resource::{AsBindGroup, ShaderRef}}
 };
 
 use crate::screens::Screen;
 
 pub(super) fn plugin(app: &mut App) {
     app
-        .add_plugins(Material2dPlugin::<TilemapMaterial>::default());
+        .add_plugins(MaterialPlugin::<TilemapMaterial>::default());
     app.add_systems(OnEnter(Screen::Gameplay), setup);
 }
 
@@ -20,7 +22,7 @@ pub struct TilemapMaterial {
 }
 
 
-impl Material2d for TilemapMaterial {
+impl Material for TilemapMaterial {
     fn vertex_shader() -> ShaderRef {
         "shaders/tilemap.wgsl".into()
     }
@@ -45,8 +47,8 @@ fn setup(
 
     commands.spawn((
         Name::new("Tilemap"),
-        Mesh2d(meshes.add(mesh).into()),
-        MeshMaterial2d(materials.add(TilemapMaterial{})),
+        Mesh3d(meshes.add(mesh).into()),
+        MeshMaterial3d(materials.add(TilemapMaterial{})),
         Transform::IDENTITY,
     ));
 }

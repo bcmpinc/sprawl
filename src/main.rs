@@ -12,7 +12,7 @@ mod screens;
 mod theme;
 mod game;
 
-use bevy::{asset::AssetMetaCheck, prelude::*};
+use bevy::{asset::AssetMetaCheck, prelude::*, render::camera::ScalingMode};
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -96,5 +96,14 @@ struct Pause(pub bool);
 struct PausableSystems;
 
 fn spawn_camera(mut commands: Commands) {
-    commands.spawn((Name::new("Camera"), Camera2d));
+    commands.spawn((
+        Name::new("Camera"),
+        //Camera2d,
+        Camera3d::default(),
+        Projection::from(OrthographicProjection {
+            scaling_mode: ScalingMode::AutoMax { max_width: 8.0, max_height: 6.0 },
+            ..OrthographicProjection::default_3d()
+        }),
+        Transform::from_xyz(5.0, 5.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
+    ));
 }
