@@ -1,6 +1,9 @@
 #import bevy_pbr::view_transformations::position_ndc_to_world
 #import bevy_pbr::mesh_view_bindings::view
 
+@group(2) @binding(0) var tiles_texture: texture_2d<f32>;
+@group(2) @binding(1) var tiles_sampler: sampler;
+
 struct VertexInput {
     @location(0) position: vec3<f32>,
 };
@@ -72,8 +75,10 @@ fn fragment(in: VertexOutput) -> FragmentOutput {
     let w = max3(fwidth(pos));
     let hex = round_hex(pos);
     let t = max3(SUM_OTHER * abs(pos - hex));
-    let s = 1.0 - (1.0 - t) / w;
+    let s = clamp(1.0 - (1.0 - t) / w, 0.0, 1.0);
     res.color = vec4(s,s,s, 1.0);
+    let color = textureSample(tiles_texture, tiles_sampler, (hex.xy + 0.5) / 32.0 + 0.5);
+    res.color += color;
     //res.depth =
     return res;
 }
