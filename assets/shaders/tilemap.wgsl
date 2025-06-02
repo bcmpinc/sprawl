@@ -1,22 +1,28 @@
-// @group(2) @binding(0) var<uniform> color: vec4<f32>;
-// @group(2) @binding(1) var radius_texture: texture_2d<f32>;
-// @group(2) @binding(2) var radius_sampler: sampler;
+#import bevy_pbr::view_transformations::position_ndc_to_world
 
 struct VertexInput {
     @location(0) position: vec3<f32>,
 };
 
 struct VertexOutput {
-    @builtin(position) position: vec4<f32>,
+    @builtin(position) clip_position: vec4<f32>,
+    @location(1) position: vec2<f32>,
 };
 
+struct FragmentOutput {
+    @location(0) color: vec4<f32>,
+    @builtin(frag_depth) depth: f32,
+};
 
 /// Pass-through vertex shader, skipping camera transform.
 /// Used for rendering a full screen triangle.
 @vertex
 fn vertex(in: VertexInput) -> VertexOutput {
     var res: VertexOutput;
-    res.position = vec4<f32>(in.position, 1.0);
+    res.clip_position = vec4<f32>(in.position, 1.0);
+    let a = position_ndc_to_world(vec3(in.position.xy,-1.0));
+    let b = position_ndc_to_world(vec3(in.position.xy, 1.0));
+    res.position = ((a*b.y - b*a.y) / (a.y + b.y)).xz;
     return res;
 }
 
@@ -25,7 +31,11 @@ fn rgb(r:f32,g:f32,b:f32) -> vec4<f32> {
 }
 
 @fragment
-fn fragment(mesh: VertexOutput) -> @location(0) vec4<f32> {
-    var res = rgb(1.0,0.0,1.0);
+fn fragment(in: VertexOutput) -> FragmentOutput {
+    var res: FragmentOutput;
+    let pos = in.position;
+    let x = 1.0 - 50.0 * abs(vec2(0.5,0.5) - fract(pos));
+    res.color = vec4(x.x, x.y, 0.0, 1.0);
+    //res.depth =
     return res;
 }

@@ -12,7 +12,10 @@ mod screens;
 mod theme;
 mod game;
 
-use bevy::{asset::AssetMetaCheck, prelude::*, render::camera::ScalingMode};
+use bevy::{
+    asset::AssetMetaCheck,
+    prelude::*,
+};
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -67,9 +70,6 @@ impl Plugin for AppPlugin {
         // Set up the `Pause` state.
         app.init_state::<Pause>();
         app.configure_sets(Update, PausableSystems.run_if(in_state(Pause(false))));
-
-        // Spawn the main camera.
-        app.add_systems(Startup, spawn_camera);
     }
 }
 
@@ -94,16 +94,3 @@ struct Pause(pub bool);
 /// A system set for systems that shouldn't run while the game is paused.
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 struct PausableSystems;
-
-fn spawn_camera(mut commands: Commands) {
-    commands.spawn((
-        Name::new("Camera"),
-        //Camera2d,
-        Camera3d::default(),
-        Projection::from(OrthographicProjection {
-            scaling_mode: ScalingMode::AutoMax { max_width: 8.0, max_height: 6.0 },
-            ..OrthographicProjection::default_3d()
-        }),
-        Transform::from_xyz(5.0, 5.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
-    ));
-}

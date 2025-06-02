@@ -7,8 +7,7 @@ use bevy::{
 use crate::screens::Screen;
 
 pub(super) fn plugin(app: &mut App) {
-    app
-        .add_plugins(MaterialPlugin::<TilemapMaterial>::default());
+    app.add_plugins(MaterialPlugin::<TilemapMaterial>::default());
     app.add_systems(OnEnter(Screen::Gameplay), setup);
 }
 
