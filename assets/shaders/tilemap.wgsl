@@ -7,13 +7,26 @@ struct VertexInput {
 
 struct VertexOutput {
     @builtin(position) clip_position: vec4<f32>,
-    @location(1) position: vec2<f32>,
+    @location(1) position: vec3<f32>,
 };
 
 struct FragmentOutput {
     @location(0) color: vec4<f32>,
     @builtin(frag_depth) depth: f32,
 };
+
+const R = 1.0 / sqrt(3.0);
+
+const POSITION_TO_CUBE: mat2x3<f32> = mat2x3<f32>(
+    vec3<f32>( 1.0,  0.0,-1.0),
+    vec3<f32>(- R ,2.0*R, -R )
+);
+
+const SUM_OTHER: mat3x3<f32> = mat3x3<f32>(
+    vec3<f32>(0.0,1.0,1.0),
+    vec3<f32>(1.0,0.0,1.0),
+    vec3<f32>(1.0,1.0,0.0),
+);
 
 /// Pass-through vertex shader, skipping camera transform.
 /// Used for rendering a full screen triangle.
@@ -23,7 +36,7 @@ fn vertex(in: VertexInput) -> VertexOutput {
     res.clip_position = vec4<f32>(in.position, 1.0);
     let a = view.world_from_clip * vec4(in.position.xy, -1.0, 1.0);
     let b = view.world_from_clip * vec4(in.position.xy,  1.0, 1.0);
-    res.position = ((a*b.y - b*a.y) / (a.y - b.y)).xz;
+    res.position = POSITION_TO_CUBE * ((a*b.y - b*a.y) / (a.y - b.y)).xz;
     return res;
 }
 
@@ -31,14 +44,36 @@ fn rgb(r:f32,g:f32,b:f32) -> vec4<f32> {
     return vec4<f32>(r,g,b,1.0);
 }
 
+fn min3(p: vec3<f32>) -> f32 {
+    return min(min(p.x, p.y), p.z);
+}
+
+fn max3(p: vec3<f32>) -> f32 {
+    return max(max(p.x, p.y), p.z);
+}
+
+fn round_hex(hex: vec3<f32>) -> vec3<f32> {
+    var res = round(hex);
+    let diff = abs(hex - res);
+    if diff.x > diff.y && diff.x > diff.z {
+        res.x = -res.y -res.z;
+    } else if diff.y > diff.z {
+        res.y = -res.x -res.z;
+    } else {
+        res.z = -res.x -res.y;
+    }
+    return res;
+}
+
 @fragment
 fn fragment(in: VertexOutput) -> FragmentOutput {
     var res: FragmentOutput;
-    let pos = in.position;
-    let w = fwidth(pos);
-    let g = 2.0 - abs(vec2(0.5,0.5) - fract(pos)) / w;
-    let t = max(g.x, g.y);
-    res.color = vec4(t,t,t, 1.0);
+    var pos = in.position;
+    let w = max3(fwidth(pos));
+    let hex = round_hex(pos);
+    let t = max3(SUM_OTHER * abs(pos - hex));
+    let s = 1.0 - (1.0 - t) / w;
+    res.color = vec4(s,s,s, 1.0);
     //res.depth =
     return res;
 }
