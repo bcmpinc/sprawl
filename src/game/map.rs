@@ -7,6 +7,8 @@ use bevy::{
 
 use crate::screens::Screen;
 
+use super::prelude::*;
+
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<TilemapMaterial>();
     app.add_plugins(MaterialPlugin::<TilemapMaterial>{
@@ -15,6 +17,7 @@ pub(super) fn plugin(app: &mut App) {
         ..default()
     });
     app.add_systems(OnEnter(Screen::Gameplay), setup);
+    app.add_systems(Update, update_tile);
 }
 
 /**
@@ -23,6 +26,7 @@ pub(super) fn plugin(app: &mut App) {
 #[derive(Asset, Reflect, AsBindGroup, Debug, Clone)]
 pub struct TilemapMaterial {
     #[texture(0)] #[sampler(1)] tiles: Handle<Image>,
+    #[uniform(2)] hover_tile: Vec3,
 }
 
 impl Material for TilemapMaterial {
@@ -61,8 +65,16 @@ fn setup(
         Name::new("Tilemap"),
         Mesh3d(meshes.add(mesh).into()),
         MeshMaterial3d(materials.add(TilemapMaterial{
-            tiles
+            tiles,
+            hover_tile: Vec3::ZERO,
         })),
         Transform::IDENTITY,
     ));
+}
+
+fn update_tile(mouse: Res<MousePos>, mut materials: ResMut<Assets<TilemapMaterial>>) {
+    let tile = mouse.hex_cell.as_vec3();
+    for mat in materials.iter_mut() {
+        mat.1.hover_tile = tile;
+    }
 }

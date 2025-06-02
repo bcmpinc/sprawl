@@ -3,6 +3,7 @@
 
 @group(2) @binding(0) var tiles_texture: texture_2d<f32>;
 @group(2) @binding(1) var tiles_sampler: sampler;
+@group(2) @binding(2) var<uniform> hover: vec3<f32>;
 
 struct VertexInput {
     @location(0) position: vec3<f32>,
@@ -39,7 +40,7 @@ fn vertex(in: VertexInput) -> VertexOutput {
     res.clip_position = vec4<f32>(in.position, 1.0);
     let a = view.world_from_clip * vec4(in.position.xy, -1.0, 1.0);
     let b = view.world_from_clip * vec4(in.position.xy,  1.0, 1.0);
-    res.position = POSITION_TO_CUBE * ((a*b.y - b*a.y) / (a.y - b.y)).xz;
+    res.position = POSITION_TO_CUBE * ((a*b.y - b*a.y) / (b.y - a.y)).xz;
     return res;
 }
 
@@ -77,7 +78,10 @@ fn fragment(in: VertexOutput) -> FragmentOutput {
     let t = max3(SUM_OTHER * abs(pos - hex));
     let s = clamp(1.0 - (1.0 - t) / w, 0.0, 1.0);
     res.color = vec4(s,s,s, 1.0);
-    let color = textureSample(tiles_texture, tiles_sampler, (hex.xy + 0.5) / 32.0 + 0.5);
+    var color = textureSample(tiles_texture, tiles_sampler, (hex.xy + 0.5) / 32.0 + 0.5);
+    if all(abs(hex - hover) < vec3(0.1)) {
+        color = rgb(1.0,0.0,1.0);
+    }
     res.color += color;
     //res.depth =
     return res;
