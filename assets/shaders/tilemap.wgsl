@@ -3,7 +3,7 @@
 
 @group(2) @binding(0) var tiles_texture: texture_2d<f32>;
 @group(2) @binding(1) var tiles_sampler: sampler;
-@group(2) @binding(2) var<uniform> hover: vec3<f32>;
+@group(2) @binding(2) var<uniform> hover: vec4<f32>;
 
 struct VertexInput {
     @location(0) position: vec3<f32>,
@@ -79,7 +79,7 @@ fn fragment(in: VertexOutput) -> FragmentOutput {
     let s = clamp(1.0 - (1.0 - t) / w, 0.0, 1.0);
     res.color = vec4(s,s,s, 1.0);
     var color = textureSample(tiles_texture, tiles_sampler, (hex.xy + 0.5) / 32.0 + 0.5);
-    if all(abs(hex - hover) < vec3(0.1)) {
+    if all(abs(vec4(hex,0.0) - hover) < vec4(0.1)) {
         color = rgb(1.0,0.0,1.0);
     }
     res.color += color;

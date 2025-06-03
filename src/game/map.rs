@@ -26,7 +26,7 @@ pub(super) fn plugin(app: &mut App) {
 #[derive(Asset, Reflect, AsBindGroup, Debug, Clone)]
 pub struct TilemapMaterial {
     #[texture(0)] #[sampler(1)] tiles: Handle<Image>,
-    #[uniform(2)] hover_tile: Vec3,
+    #[uniform(2)] hover_tile: Vec4,
 }
 
 impl Material for TilemapMaterial {
@@ -66,7 +66,7 @@ fn setup(
         Mesh3d(meshes.add(mesh)),
         MeshMaterial3d(materials.add(TilemapMaterial{
             tiles,
-            hover_tile: Vec3::ZERO,
+            hover_tile: Vec4::ZERO,
         })),
         Transform::IDENTITY,
     ));
@@ -75,6 +75,8 @@ fn setup(
 fn update_tile(mouse: Res<MousePos>, mut materials: ResMut<Assets<TilemapMaterial>>) {
     let tile = mouse.hex_cell.as_vec3();
     for mat in materials.iter_mut() {
-        mat.1.hover_tile = tile;
+        mat.1.hover_tile = tile.extend(
+            if mouse.on_screen {0.0} else {1.0}
+        ) ;
     }
 }
