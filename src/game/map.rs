@@ -63,7 +63,7 @@ fn setup(
 
     commands.spawn((
         Name::new("Tilemap"),
-        Mesh3d(meshes.add(mesh).into()),
+        Mesh3d(meshes.add(mesh)),
         MeshMaterial3d(materials.add(TilemapMaterial{
             tiles,
             hover_tile: Vec3::ZERO,

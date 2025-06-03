@@ -18,7 +18,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(First, tracking);
 }
 
-const R: f32 = 0.5773502691896258; // 1.0 / f32::sqrt(3.0);
+const R: f32 = 0.57735027; // 1.0 / f32::sqrt(3.0);
 
 const POSITION_TO_CUBE: Mat3 = Mat3::from_cols(
     vec3( 1.0,  0.0,-1.0),
@@ -36,7 +36,7 @@ fn round_hex(hex: Vec3) -> Vec3 {
     } else {
         res.z = -res.x -res.y;
     }
-    return res;
+    res
 }
 
 fn tracking(
@@ -54,6 +54,5 @@ fn tracking(
         mouse_pos.on_screen = true;
     } else {
         mouse_pos.on_screen = false;
-        return;
     }
 }
