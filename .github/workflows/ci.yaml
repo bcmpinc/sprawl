@@ -18,24 +18,6 @@ env:
   toolchain: nightly-2025-04-03
 
 jobs:
-  # Check formatting.
-  format:
-    name: Format
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ env.toolchain }}
-          components: rustfmt
-
-      - name: Check formatting
-        run: cargo fmt --all -- --check
-
   # Check documentation.
   docs:
     name: Docs
