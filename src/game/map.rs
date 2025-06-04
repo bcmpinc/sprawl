@@ -1,23 +1,41 @@
+use std::borrow::Cow;
+
 use bevy::{
-    asset::RenderAssetUsages,
+    asset::{AssetLoader, RenderAssetUsages},
     image::{ImageLoaderSettings, ImageSampler},
     prelude::*,
-    render::{mesh::PrimitiveTopology, render_resource::{AsBindGroup, ShaderRef}}
+    render::{
+        mesh::PrimitiveTopology,
+        render_resource::{AsBindGroup, BindGroupLayout, CachedComputePipelineId, ComputePipelineDescriptor, PipelineCache, ShaderRef},
+        renderer::RenderDevice,
+        RenderApp,
+    },
 };
 
 use crate::screens::Screen;
 
 use super::prelude::*;
 
-pub(super) fn plugin(app: &mut App) {
-    app.register_type::<TilemapMaterial>();
-    app.add_plugins(MaterialPlugin::<TilemapMaterial>{
-        prepass_enabled: false,
-        shadows_enabled: false,
-        ..default()
-    });
-    app.add_systems(OnEnter(Screen::Gameplay), setup);
-    app.add_systems(Update, update_tile);
+pub(super) struct MapPlugin;
+
+impl Plugin for MapPlugin {
+    fn build(&self, app: &mut App) {
+        app.register_type::<TilemapMaterial>();
+        app.add_plugins(MaterialPlugin::<TilemapMaterial>{
+            prepass_enabled: false,
+            shadows_enabled: false,
+            ..default()
+        });
+        app.add_systems(OnEnter(Screen::Gameplay), setup);
+        app.add_systems(Update, update_tile);
+    }
+
+    fn finish(&self, app: &mut App) {
+        if let Some(render_app) = app.get_sub_app_mut(RenderApp) {
+            render_app.init_resource::<KernelPipeline>();
+            println!("KernelPipeline added");
+        }
+    }
 }
 
 /**
@@ -65,11 +83,15 @@ fn setup(
         Name::new("Tilemap"),
         Mesh3d(meshes.add(mesh)),
         MeshMaterial3d(materials.add(TilemapMaterial{
-            tiles,
+            tiles: tiles.clone(),
             hover_tile: Vec4::ZERO,
         })),
         Transform::IDENTITY,
     ));
+
+    let data = ShaderData {
+        tiles
+    };
 }
 
 fn update_tile(mouse: Res<MousePos>, mut materials: ResMut<Assets<TilemapMaterial>>) {
@@ -78,5 +100,45 @@ fn update_tile(mouse: Res<MousePos>, mut materials: ResMut<Assets<TilemapMateria
         mat.1.hover_tile = tile.extend(
             if mouse.on_screen {0.0} else {1.0}
         ) ;
+    }
+}
+
+
+
+#[derive(TypePath,AsBindGroup)]
+struct ShaderData {
+    #[storage_texture(0)] tiles: Handle<Image>,
+}
+
+#[derive(Resource)]
+struct KernelPipeline {
+    pub pipeline: CachedComputePipelineId,
+    pub bind_group_layout: BindGroupLayout,
+}
+
+impl FromWorld for KernelPipeline {
+    fn from_world(world: &mut World) -> Self {
+        // Gather resources
+        let assets = world.get_resource::<AssetServer>().unwrap();
+        let render_device = world.get_resource::<RenderDevice>().unwrap();
+        let cache = world.get_resource::<PipelineCache>().unwrap();
+
+        // Build shader graph
+        let shader: Handle<Shader> = assets.load("shaders/simulate.wgsl");
+        let bind_group_layout = ShaderData::bind_group_layout(&render_device);
+        let pipeline = cache.queue_compute_pipeline(ComputePipelineDescriptor{
+            label: None,
+            layout: vec![bind_group_layout.clone()],
+            push_constant_ranges: vec![],
+            shader,
+            shader_defs: vec![],
+            entry_point: Cow::from("main"),
+            zero_initialize_workgroup_memory: true,
+        });
+
+        KernelPipeline{
+            bind_group_layout,
+            pipeline,
+        }
     }
 }

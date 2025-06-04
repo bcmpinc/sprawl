@@ -23,7 +23,7 @@ fn spawn_camera(mut commands: Commands) {
         Camera3d::default(),
         MainCamera,
         Projection::from(OrthographicProjection {
-            scaling_mode: ScalingMode::AutoMax { max_width: 8.0, max_height: 6.0 },
+            scaling_mode: ScalingMode::AutoMax { max_width: 20.0, max_height: 15.0 },
             ..OrthographicProjection::default_3d()
         }),
         Transform::default(),
