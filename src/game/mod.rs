@@ -8,6 +8,7 @@ use crate::screens::Screen;
 mod map;
 mod mouse;
 mod scene;
+mod tiles;
 
 #[allow(unused_imports)]
 mod prelude {
@@ -20,6 +21,7 @@ pub(super) fn plugin(app: &mut App) {
         map::MapPlugin,
         mouse::plugin,
         scene::plugin,
+        tiles::plugin,
     ));
 
     app.add_systems(OnEnter(Screen::Gameplay), setup);

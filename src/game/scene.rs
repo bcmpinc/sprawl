@@ -1,6 +1,9 @@
 use bevy::{
     prelude::*,
-    render::camera::ScalingMode
+    render::{
+        camera::ScalingMode,
+        view::RenderLayers,
+    }
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -23,7 +26,8 @@ fn spawn_camera(mut commands: Commands) {
         Camera3d::default(),
         MainCamera,
         Projection::from(OrthographicProjection {
-            scaling_mode: ScalingMode::AutoMax { max_width: 20.0, max_height: 15.0 },
+            scaling_mode: ScalingMode::WindowSize,
+            scale: 1.0/32.0,
             ..OrthographicProjection::default_3d()
         }),
         Transform::default(),
@@ -56,6 +60,7 @@ fn spawn_light(mut commands: Commands) {
             ..default()
         },
         Transform::default().looking_to(-Vec3::new(1.0, 2.0, 1.0), Vec3::Y),
+        RenderLayers::from_layers(&[0,1]),
     ));
 
     commands.spawn((

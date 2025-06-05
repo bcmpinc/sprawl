@@ -18,11 +18,6 @@ pub(super) fn plugin(app: &mut App) {
 #[reflect(Component)]
 pub struct Music;
 
-/// A music audio instance.
-pub fn music(handle: Handle<AudioSource>) -> impl Bundle {
-    (AudioPlayer(handle), PlaybackSettings::LOOP, Music)
-}
-
 /// An organizational marker component that should be added to a spawned [`AudioPlayer`] if it's in the
 /// general "sound effect" category (e.g. footsteps, the sound of a magic spell, a door opening).
 ///
