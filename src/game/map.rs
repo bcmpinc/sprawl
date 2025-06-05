@@ -152,7 +152,7 @@ impl FromWorld for KernelPipeline {
 
         // Build shader graph
         let shader: Handle<Shader> = assets.load("shaders/simulate.wgsl");
-        let bind_group_layout = ShaderData::bind_group_layout(&render_device);
+        let bind_group_layout = ShaderData::bind_group_layout(render_device);
         let pipeline = cache.queue_compute_pipeline(ComputePipelineDescriptor{
             label: None,
             layout: vec![bind_group_layout.clone()],
@@ -255,7 +255,7 @@ impl Node for DispatchKernel {
                 });
             if let Some(real_pipeline) = pipeline_cache.get_compute_pipeline(kernel_pipeline.pipeline) {
                 //println!("dispatch happening");
-                pass.set_pipeline(&real_pipeline);
+                pass.set_pipeline(real_pipeline);
                 pass.set_bind_group(0, &kernel_bind_group.0, &[]);
                 pass.dispatch_workgroups(16, 16, 1);
             }

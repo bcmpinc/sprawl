@@ -89,8 +89,8 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
                 height: Val::Px(size.height as f32),
                 ..default()
             },
-            BackgroundColor(palette::BUTTON_HOVERED_BACKGROUND.into()),
-            Outline::new(Val::Px(2.0), Val::ZERO, palette::BUTTON_PRESSED_BACKGROUND.into()),
+            BackgroundColor(palette::BUTTON_HOVERED_BACKGROUND),
+            Outline::new(Val::Px(2.0), Val::ZERO, palette::BUTTON_PRESSED_BACKGROUND),
         ));
     });
 }

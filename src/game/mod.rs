@@ -32,7 +32,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), setup);
 }
 
-const MODELS: &[&'static str] = &[
+const MODELS: &[&str] = &[
     "models/building-smelter.glb",
     "models/grass-forest.glb",
     "models/stone-rocks.glb",
