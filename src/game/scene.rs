@@ -70,6 +70,7 @@ fn spawn_light(mut commands: Commands) {
             ..default()
         },
         Transform::default().looking_to(-Vec3::new(-1.0, 1.5, 1.0), Vec3::Y),
+        RenderLayers::from_layers(&[0,1]),
     ));
 
     commands.spawn((
@@ -79,5 +80,6 @@ fn spawn_light(mut commands: Commands) {
             ..default()
         },
         Transform::default().looking_to(-Vec3::new(0.0, 1.0, -1.0), Vec3::Y),
+        RenderLayers::from_layers(&[0,1]),
     ));
 }

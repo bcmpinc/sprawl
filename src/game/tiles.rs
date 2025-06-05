@@ -1,8 +1,14 @@
 use bevy::{
-    asset::RenderAssetUsages, color::palettes::css::{ANTIQUE_WHITE, CRIMSON}, prelude::*, render::{
-        camera::ScalingMode, render_resource::{Extent3d, TextureDimension, TextureFormat, TextureUsages}, view::RenderLayers
+    asset::RenderAssetUsages,
+    prelude::*,
+    render::{
+        camera::ScalingMode,
+        render_resource::{Extent3d, TextureDimension, TextureFormat, TextureUsages},
+        view::RenderLayers
     }
 };
+
+use crate::theme::palette;
 
 use super::scene::MainCamera;
 
@@ -51,6 +57,7 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
         Camera3d::default(),
         Camera {
             target: image_handle.clone().into(),
+            clear_color: ClearColorConfig::Custom(Color::NONE),
             ..default()
         },
         TilesCamera,
@@ -64,21 +71,33 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
         RenderLayers::layer(1),
     ));
 
-    commands.spawn((
-        ImageNode::new(
-            image_handle.clone(),
-        ),
-        Node {
-            width: Val::Px(size.width as f32),
-            height: Val::Px(size.height as f32),
-            ..default()
-        },
-        BackgroundColor(ANTIQUE_WHITE.into()),
-        Outline::new(Val::Px(2.0), Val::ZERO, CRIMSON.into()),
-    ));
+    commands.spawn(Node {
+        width: Val::Percent(100.0),
+        height: Val::Percent(100.0),
+        flex_direction: FlexDirection::Column,
+        justify_content: JustifyContent::FlexEnd,
+        align_items: AlignItems::Center,
+        padding: UiRect::all(Val::Px(4.0)),
+        ..default()
+    }).with_children(|parent| {
+        parent.spawn((
+            ImageNode::new(
+                image_handle.clone(),
+            ),
+            Node {
+                width: Val::Px(size.width as f32),
+                height: Val::Px(size.height as f32),
+                ..default()
+            },
+            BackgroundColor(palette::BUTTON_HOVERED_BACKGROUND.into()),
+            Outline::new(Val::Px(2.0), Val::ZERO, palette::BUTTON_PRESSED_BACKGROUND.into()),
+        ));
+    });
 }
 
-fn copy_transform(main: Query<&Transform, With<MainCamera>>, mut tiles: Query<&mut Transform, (With::<TilesCamera>, Without::<MainCamera>)>) {
-    let (Ok(main), Ok(tiles)) = (main.single(), tiles.single_mut()) else {return};
-    // *tiles = Transform::from_rotation(rotation) *main.rotation;
+fn copy_transform(main: Query<&Transform, With<MainCamera>>, mut tiles: Query<&mut Transform, (With::<SceneRoot>, Without::<MainCamera>)>) {
+    let Ok(main) = main.single() else {return};
+    for mut tile in tiles.iter_mut() {
+        tile.rotation = main.rotation.inverse();
+    }
 }
