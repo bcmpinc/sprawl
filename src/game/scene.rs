@@ -6,6 +6,8 @@ use bevy::{
     }
 };
 
+use super::TILE_SIZE;
+
 pub(super) fn plugin(app: &mut App) {
     // Spawn the main camera.
     app.add_systems(Startup, (
@@ -27,7 +29,7 @@ fn spawn_camera(mut commands: Commands) {
         MainCamera,
         Projection::from(OrthographicProjection {
             scaling_mode: ScalingMode::WindowSize,
-            scale: 1.0/32.0,
+            scale: 1.0/TILE_SIZE as f32,
             ..OrthographicProjection::default_3d()
         }),
         Transform::default(),

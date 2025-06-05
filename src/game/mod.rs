@@ -6,6 +6,8 @@ use bevy::{
 
 use crate::screens::Screen;
 
+pub const TILE_SIZE: u32 = 64;
+
 mod map;
 mod mouse;
 mod scene;

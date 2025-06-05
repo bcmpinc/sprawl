@@ -10,10 +10,10 @@ use bevy::{
 
 use crate::theme::palette;
 
-use super::scene::MainCamera;
+use super::{scene::MainCamera, TILE_SIZE};
 
 #[derive(Resource)]
-pub struct TileAtlas(pub Handle<Image>);
+pub struct Tileset(pub Handle<Image>);
 
 #[derive(Component)]
 pub struct TilesCamera;
@@ -31,7 +31,7 @@ pub(super) fn plugin(app: &mut App) {
 fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     let size = Extent3d {
         width: 1024,
-        height: 64,
+        height: TILE_SIZE * 2,
         ..default()
     };
 
@@ -50,7 +50,7 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     let image_handle = images.add(image);
 
     // Save tileset handle in a resource
-    commands.insert_resource(TileAtlas(image_handle.clone()));
+    commands.insert_resource(Tileset(image_handle.clone()));
 
     commands.spawn((
         Name::new("Tilesheet Camera"),
@@ -64,7 +64,7 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
         Projection::from(OrthographicProjection {
             scaling_mode: ScalingMode::WindowSize,
             viewport_origin: vec2(0.0,0.0),
-            scale: 1.0/32.0,
+            scale: 1.0/TILE_SIZE as f32,
             ..OrthographicProjection::default_3d()
         }),
         Transform::default(),

@@ -19,7 +19,7 @@ use bevy::{
 
 use crate::screens::Screen;
 
-use super::prelude::*;
+use super::{prelude::*, tiles::Tileset};
 
 pub(super) struct MapPlugin;
 
@@ -66,8 +66,9 @@ impl Plugin for MapPlugin {
  */
 #[derive(Asset, Reflect, AsBindGroup, Debug, Clone)]
 pub struct TilemapMaterial {
-    #[texture(0)] #[sampler(1)] tiles: Handle<Image>,
-    #[uniform(2)] hover_tile: Vec4,
+    #[texture(0)] #[sampler(1)] map: Handle<Image>,
+    #[texture(2)] #[sampler(3)] tileset: Handle<Image>,
+    #[uniform(4)] hover_tile: Vec4,
 }
 
 impl Material for TilemapMaterial {
@@ -83,6 +84,7 @@ fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<TilemapMaterial>>,
+    tileset: Res<Tileset>,
     assets: Res<AssetServer>,
 ) {
     // Fullscreen triangle (covers full screen)
@@ -94,7 +96,7 @@ fn setup(
         [-1.0,  1.0, 0.0],
     ]);
 
-    let tiles : Handle<Image> = assets.load_with_settings(
+    let map : Handle<Image> = assets.load_with_settings(
         "images/ducky_shear.png",
         |settings: &mut ImageLoaderSettings| {
             // Use `nearest` image sampling to preserve pixel art style.
@@ -107,7 +109,8 @@ fn setup(
         Name::new("Tilemap"),
         Mesh3d(meshes.add(mesh)),
         MeshMaterial3d(materials.add(TilemapMaterial{
-            tiles,
+            map,
+            tileset: tileset.0.clone(),
             hover_tile: Vec4::ZERO,
         })),
         Transform::IDENTITY,
@@ -177,7 +180,7 @@ fn configure_image(
 ) {
     if shader_data.is_some() {return}
     let Some(material) = &material.iter().next() else {return};
-    let handle = material.1.tiles.id();
+    let handle = material.1.map.id();
 
     // Wait until asset is fully loaded
     if matches!(asset_server.get_load_state(handle), Some(LoadState::Loaded)) {
@@ -187,7 +190,7 @@ fn configure_image(
             println!("Changed storage flag!");
 
             commands.insert_resource(ShaderData {
-                tiles: material.1.tiles.clone()
+                tiles: material.1.map.clone()
             });
         }
     }
