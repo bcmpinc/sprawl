@@ -19,7 +19,7 @@ use bevy::{
 
 use crate::screens::Screen;
 
-use super::{prelude::*, tiles::Tileset};
+use super::{prelude::*, tiles::Tileset, TILE_SIZE};
 
 pub(super) struct MapPlugin;
 
@@ -27,6 +27,9 @@ pub(super) struct MapPlugin;
 pub enum MyRenderLabels {
     Simulate,
 }
+
+#[derive(Component)]
+pub struct TileMap;
 
 impl Plugin for MapPlugin {
     fn build(&self, app: &mut App) {
@@ -66,9 +69,10 @@ impl Plugin for MapPlugin {
  */
 #[derive(Asset, Reflect, AsBindGroup, Debug, Clone)]
 pub struct TilemapMaterial {
-    #[texture(0)] #[sampler(1)] map: Handle<Image>,
-    #[texture(2)] #[sampler(3)] tileset: Handle<Image>,
-    #[uniform(4)] hover_tile: Vec4,
+    #[texture(0)] map: Handle<Image>,
+    #[texture(1)] tileset: Handle<Image>,
+    #[uniform(2)] hover_tile: Vec4,
+    #[uniform(3)] tile_size: f32,
 }
 
 impl Material for TilemapMaterial {
@@ -107,11 +111,13 @@ fn setup(
 
     commands.spawn((
         Name::new("Tilemap"),
+        TileMap,
         Mesh3d(meshes.add(mesh)),
         MeshMaterial3d(materials.add(TilemapMaterial{
             map,
             tileset: tileset.0.clone(),
             hover_tile: Vec4::ZERO,
+            tile_size: TILE_SIZE as f32,
         })),
         Transform::IDENTITY,
     ));
