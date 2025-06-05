@@ -8,7 +8,7 @@ use bevy::{
         extract_resource::{ExtractResource, ExtractResourcePlugin},
         mesh::PrimitiveTopology,
         render_asset::RenderAssets,
-        render_graph::Node,
+        render_graph::{Node, RenderGraph, RenderLabel},
         render_resource::{AsBindGroup, BindGroup, BindGroupLayout, CachedComputePipelineId, ComputePassDescriptor, ComputePipelineDescriptor, PipelineCache, ShaderRef, TextureUsages},
         renderer::RenderDevice,
         storage::GpuShaderStorageBuffer,
@@ -22,6 +22,11 @@ use crate::screens::Screen;
 use super::prelude::*;
 
 pub(super) struct MapPlugin;
+
+#[derive(RenderLabel, Debug, Hash, PartialEq, Eq, Clone)]
+pub enum MyRenderLabels {
+    Simulate,
+}
 
 impl Plugin for MapPlugin {
     fn build(&self, app: &mut App) {
@@ -41,6 +46,16 @@ impl Plugin for MapPlugin {
         if let Some(render_app) = app.get_sub_app_mut(RenderApp) {
             render_app.init_resource::<KernelPipeline>();
             render_app.add_systems(Render, prepare_compute.in_set(RenderSet::Prepare));
+
+            let mut render_graph = render_app.world_mut().get_resource_mut::<RenderGraph>().expect("Should be able to get render graph");
+            let kernel_node = DispatchKernel{};
+
+            render_graph.add_node(MyRenderLabels::Simulate, kernel_node);
+            //render_graph.add_node_edge(CAMERA_DRIVER, "MY STRING");
+            /*let r = render_graph.try_add_node_edge(MyRenderLabels::Simulate, );
+            if r.is_err() {
+                println!("{:?}", r);
+            }*/
             println!("KernelPipeline added");
         }
     }
