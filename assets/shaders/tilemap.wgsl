@@ -2,8 +2,10 @@
 
 @group(2) @binding(0) var map_texture: texture_2d<f32>;
 @group(2) @binding(1) var tileset_texture: texture_2d<f32>;
-@group(2) @binding(2) var<uniform> hover: vec4<f32>;
-@group(2) @binding(3) var<uniform> tilesize: f32;
+@group(2) @binding(2) var tileset_sampler: sampler;
+@group(2) @binding(3) var<uniform> hover: vec4<f32>;
+@group(2) @binding(4) var<uniform> tilesize: f32;
+@group(2) @binding(5) var<uniform> tilecount: f32;
 
 struct VertexInput {
     @location(0) pixel: vec3<f32>,
@@ -98,6 +100,16 @@ const OFFSETS: array<vec3<f32>, 7> = array<vec3<f32>, 7>(
     vec3<f32>( 0, 1,-1),
 );
 
+fn multiply_alpha(c:vec4<f32>) -> vec4<f32> {
+    return vec4(c.rgb * c.a, c.a);
+}
+
+// Alphablend for colors with pre-multiplied alpha
+// Color a is placed on top
+fn blend(a:vec4<f32>, b:vec4<f32>) -> vec4<f32> {
+    return a + b * (1.0 - a.a);
+}
+
 @fragment
 fn fragment(in: VertexOutput) -> FragmentOutput {
     let center_hex = round_hex(in.hexagon);
@@ -105,12 +117,12 @@ fn fragment(in: VertexOutput) -> FragmentOutput {
     // Calculate a hex outline.
     let w = max3(fwidth(in.hexagon));
     let edge_distance = 1.0 - max3(SUM_OTHER * abs(in.hexagon - center_hex));
-    let edge_color = clamp(1.0 - edge_distance / w, 0.0, 1.0);
+    let edge_color = clamp(edge_distance / w / 4.0 - 0.1, 0.0, 0.5);
 
     // Sample tile texture
-    var color = vec4(0.5);
+    var color = vec4(vec3(edge_color), 1.0);
     var depth = -10.0;
-    var tile_offset = vec2<i32>(i32(tilesize*2.0), 0);
+    var tile_scale = vec2(1.0 / tilecount, 1.0);
     for (var i = 0; i < 7; i += 1) {
         let hex = center_hex + OFFSETS[i];
         let hex_position = vec4(CUBE_TO_POSITION * hex, 0.0, 1.0).xzyw;
@@ -118,24 +130,22 @@ fn fragment(in: VertexOutput) -> FragmentOutput {
         if position.x < -1.0 || 1.0 < position.x {
             continue;
         }
-        let offset = position.xy * vec2(tilesize,-tilesize) + tilesize * vec2(1.0,1.5) + vec2(0.5, 0.5);
+        let offset = (0.5 * position.xy * vec2(1.0,-1.0) + vec2(0.5,0.75));
 
         let tile = textureLoad(map_texture, vec2<i32>(hex.xy+16.5) % 32, 0);
-        let tile_id = i32(dot(tile, vec4(1234.,432.,6234.,123.))) % 4;
-        let new_color = textureLoad(tileset_texture, vec2<i32>(offset) + tile_id*tile_offset, 0);
-        if new_color.a > 0.5 && depth < position.y {
-            color = new_color;
+        let tile_id = f32(i32(dot(tile, vec4(1234.,432.,6234.,123.))) % 4);
+        var new_color = textureSample(tileset_texture, tileset_sampler, (offset + vec2(tile_id, 0.0))*tile_scale);
+        if new_color.a > 0.1 && depth < position.y {
+            new_color = multiply_alpha(new_color);
+            if all(abs(vec4(hex,0.0) - hover) < vec4(0.1)) {
+                new_color = blend(0.5 * rgb(1.0,0.0,1.0), new_color);
+            }
+            color = blend(new_color, color);
             depth = position.y;
         }
     }
 
-    if all(abs(vec4(center_hex,0.0) - hover) < vec4(0.1)) {
-        color = rgb(1.0,0.0,1.0);
-    }
-
     var out: FragmentOutput;
-    out.color = vec4(vec3(edge_color), 1.0);
-    out.color = color;
-    //out.depth =
+    out.color = color / color.a;
     return out;
 }

@@ -10,7 +10,7 @@ use bevy::{
 
 use crate::theme::palette;
 
-use super::{scene::MainCamera, TILE_SIZE};
+use super::{scene::MainCamera, TILE_COUNT, TILE_SIZE};
 
 #[derive(Resource)]
 pub struct Tileset(pub Handle<Image>);
@@ -30,8 +30,8 @@ pub(super) fn plugin(app: &mut App) {
 
 fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     let size = Extent3d {
-        width: 1024,
-        height: TILE_SIZE * 2,
+        width: TILE_SIZE * TILE_COUNT,
+        height: TILE_SIZE,
         ..default()
     };
 
@@ -64,7 +64,7 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
         Projection::from(OrthographicProjection {
             scaling_mode: ScalingMode::WindowSize,
             viewport_origin: vec2(0.0,0.0),
-            scale: 1.0/TILE_SIZE as f32,
+            scale: 2.0/TILE_SIZE as f32,
             ..OrthographicProjection::default_3d()
         }),
         Transform::default(),

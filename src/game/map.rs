@@ -19,7 +19,7 @@ use bevy::{
 
 use crate::screens::Screen;
 
-use super::{prelude::*, tiles::Tileset, TILE_SIZE};
+use super::{prelude::*, tiles::Tileset, TILE_SIZE, TILE_COUNT};
 
 pub(super) struct MapPlugin;
 
@@ -72,9 +72,10 @@ impl Plugin for MapPlugin {
 #[derive(Asset, Reflect, AsBindGroup, Debug, Clone)]
 pub struct TilemapMaterial {
     #[texture(0)] map: Handle<Image>,
-    #[texture(1)] tileset: Handle<Image>,
-    #[uniform(2)] hover_tile: Vec4,
-    #[uniform(3)] tile_size: f32,
+    #[texture(1)] #[sampler(2)] tileset: Handle<Image>,
+    #[uniform(3)] hover_tile: Vec4,
+    #[uniform(4)] tile_size: f32,
+    #[uniform(5)] tile_count: f32,
 }
 
 impl Material for TilemapMaterial {
@@ -120,6 +121,7 @@ fn setup(
             tileset: tileset.0.clone(),
             hover_tile: Vec4::ZERO,
             tile_size: TILE_SIZE as f32,
+            tile_count: TILE_COUNT as f32,
         })),
         Transform::IDENTITY,
     ));

@@ -31,7 +31,7 @@ fn spawn_camera(mut commands: Commands) {
         MainCamera::default(),
         Projection::from(OrthographicProjection {
             scaling_mode: ScalingMode::WindowSize,
-            scale: 1.0/TILE_SIZE as f32,
+            scale: 2.0/TILE_SIZE as f32,
             ..OrthographicProjection::default_3d()
         }),
         Transform::default(),
