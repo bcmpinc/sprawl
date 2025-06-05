@@ -14,19 +14,21 @@ pub(super) fn plugin(app: &mut App) {
         spawn_camera,
         spawn_light,
     ));
-    app.add_systems(Update, (
+    app.add_systems(PreUpdate, (
         orbit_camera,
     ));
 }
 
-#[derive(Component)]
-pub struct MainCamera;
+#[derive(Component, Default)]
+pub struct MainCamera {
+    pub next_transform: Transform,
+}
 
 fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         Name::new("Camera"),
         Camera3d::default(),
-        MainCamera,
+        MainCamera::default(),
         Projection::from(OrthographicProjection {
             scaling_mode: ScalingMode::WindowSize,
             scale: 1.0/TILE_SIZE as f32,
@@ -38,9 +40,9 @@ fn spawn_camera(mut commands: Commands) {
 
 fn orbit_camera(
     time: Res<Time>,
-    mut query: Query<&mut Transform, With<MainCamera>>,
+    mut query: Query<(&mut Transform, &mut MainCamera)>,
 ) {
-    let Ok(mut transform) = query.single_mut() else {return};
+    let Ok((mut transform, mut main)) = query.single_mut() else {return};
 
     let radius = 50.0;
     let elevation = 50.0;
@@ -51,7 +53,8 @@ fn orbit_camera(
     let y = elevation;
     let z = radius * angle.sin();
 
-    *transform = Transform::from_xyz(x, y, z).looking_at(Vec3::ZERO, Vec3::Y);
+    *transform = main.next_transform;
+    main.next_transform = Transform::from_xyz(x, y, z).looking_at(Vec3::ZERO, Vec3::Y);
 }
 
 fn spawn_light(mut commands: Commands) {

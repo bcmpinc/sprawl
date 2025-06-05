@@ -23,7 +23,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Startup, (
         setup,
     ));
-    app.add_systems(First, (
+    app.add_systems(Update, (
         copy_transform,
     ));
 }
@@ -95,9 +95,9 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     });
 }
 
-fn copy_transform(main: Query<&Transform, With<MainCamera>>, mut tiles: Query<&mut Transform, (With::<SceneRoot>, Without::<MainCamera>)>) {
+fn copy_transform(main: Query<&MainCamera>, mut tiles: Query<&mut Transform, With::<SceneRoot>>) {
     let Ok(main) = main.single() else {return};
     for mut tile in tiles.iter_mut() {
-        tile.rotation = main.rotation.inverse();
+        tile.rotation = main.next_transform.rotation.inverse();
     }
 }
