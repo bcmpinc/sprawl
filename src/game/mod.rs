@@ -3,10 +3,11 @@ use bevy::{render::view::RenderLayers, scene::SceneInstanceReady};
 use bevy::{
     prelude::*,
 };
+use tiles::Tile;
 
 use crate::screens::Screen;
 
-pub const TILE_SIZE: u32 = 64;
+pub const TILE_SIZE: u32 = 128;
 pub const TILE_COUNT: u32 = 16;
 
 mod map;
@@ -28,7 +29,7 @@ pub(super) fn plugin(app: &mut App) {
         tiles::plugin,
     ));
 
-    app.add_observer(insert_render_layer);
+    //app.add_observer(insert_render_layer);
 
     app.add_systems(OnEnter(Screen::Gameplay), setup);
 }
@@ -36,22 +37,37 @@ pub(super) fn plugin(app: &mut App) {
 const MODELS: &[&str] = &[
     "models/building-smelter.glb",
     "models/grass-forest.glb",
-    "models/stone-rocks.glb",
+    "models/grass-rocks.glb",
 ];
 
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
+    // Load tile material
+    let texture: Handle<Image> = asset_server.load("images/colormap.png");
+    let material = materials.add(StandardMaterial {
+        base_color_texture: Some(texture.clone()),
+        ..default()
+    });
+
+    // Create tiles
     for (i,file) in MODELS.iter().enumerate() {
+        let mesh: Handle<Mesh> = asset_server.load(
+            GltfAssetLabel::Primitive{ mesh:0, primitive:0 }.from_asset(*file)
+        );
         commands.spawn((
-            SceneRoot(asset_server.load(GltfAssetLabel::Scene(0).from_asset(*file))),
-            Transform::from_xyz(1.0 + 2.0 * (i as f32), 0.5, -2.0),//.with_scale(vec3(1.02,1.02,1.02)),
+            Tile::default(),
+            Mesh3d(mesh),
+            MeshMaterial3d(material.clone()),
+            Transform::from_xyz(1.0 + 2.0 * (i as f32), 0.5, -2.0),
             RenderLayers::layer(1),
         ));
     }
 }
 
+/*
 fn insert_render_layer(
     trigger: Trigger<SceneInstanceReady>,
     children: Query<&Children>,
@@ -65,3 +81,4 @@ fn insert_render_layer(
         }
     }
 }
+*/

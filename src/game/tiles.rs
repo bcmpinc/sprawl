@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use bevy::{
     asset::RenderAssetUsages,
     prelude::*,
@@ -17,6 +19,19 @@ pub struct Tileset(pub Handle<Image>);
 
 #[derive(Component)]
 pub struct TilesCamera;
+
+#[derive(Component, Default)]
+pub struct Tile {
+    rotation: Quat,
+}
+
+impl Tile {
+    fn rotated(rotation: i32) -> Self {
+        Self {
+            rotation: Quat::from_rotation_y(PI * rotation as f32 / 2.0)
+        }
+    }
+}
 
 pub(super) fn plugin(app: &mut App) {
     // Spawn the tileset camera.
@@ -95,9 +110,9 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     });
 }
 
-fn copy_transform(main: Query<&MainCamera>, mut tiles: Query<&mut Transform, With::<SceneRoot>>) {
+fn copy_transform(main: Query<&MainCamera>, mut tiles: Query<(&mut Transform, &Tile)>) {
     let Ok(main) = main.single() else {return};
-    for mut tile in tiles.iter_mut() {
-        tile.rotation = main.next_transform.rotation.inverse();
+    for (mut transform, tile) in tiles.iter_mut() {
+        transform.rotation = tile.rotation * main.next_transform.rotation.inverse();
     }
 }
