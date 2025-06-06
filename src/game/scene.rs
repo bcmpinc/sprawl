@@ -8,6 +8,8 @@ use bevy::{
 use super::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
+    app.register_type::<MainCamera>();
+
     // Spawn the main camera.
     app.add_systems(Startup, (
         spawn_camera,
@@ -18,7 +20,8 @@ pub(super) fn plugin(app: &mut App) {
     ));
 }
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
 pub struct MainCamera {
     pub next_transform: Transform,
     yaw: f32,   // horizontal angle in radians
@@ -39,7 +42,11 @@ fn spawn_camera(mut commands: Commands) {
             scale: 2.0/TILE_SIZE as f32,
             ..OrthographicProjection::default_3d()
         }),
-        Transform::default(),
+        Transform{
+            rotation: Quat::from_rotation_y(-1.0),
+            translation: Vec3::ZERO,
+            scale: Vec3::ONE,
+        },
     ));
 }
 

@@ -1,6 +1,9 @@
-#[allow(unused_braces)]
 use bevy::{
     prelude::*,
+    picking::{
+        backend::{ray::RayMap, HitData, PointerHits},
+        PickSet
+    },
 };
 
 use super::prelude::*;
@@ -15,7 +18,7 @@ pub struct MousePos {
 pub(super) fn plugin(app: &mut App) {
     app.init_resource::<MousePos>();
     app.register_type::<MousePos>();
-    app.add_systems(First, tracking);
+    app.add_systems(PreUpdate, tracking.in_set(PickSet::Backend));
 }
 
 const R: f32 = 0.57735027; // 1.0 / f32::sqrt(3.0);
@@ -39,20 +42,42 @@ fn round_hex(hex: Vec3) -> Vec3 {
     res
 }
 
-fn tracking(
-    q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
-    q_window: Query<&Window>,
+/// Casts rays into the scene using [`MeshPickingSettings`] and sends [`PointerHits`] events.
+pub fn tracking(
+    ray_map: Res<RayMap>,
+    main_camera: Query<Entity, With<MainCamera>>,
+    map: Query<Entity, With<TileMap>>,
+    mut output: EventWriter<PointerHits>,
     mut mouse_pos: ResMut<MousePos>,
 ) {
-    let Ok((camera, camera_transform)) = q_camera.single() else {return};
-    let Ok(window) = q_window.single() else {return};
-    if let Some(viewport_position) = window.cursor_position() {
-        let ray = camera.viewport_to_world(camera_transform, viewport_position).unwrap();
-        let pos = ray.origin - ray.direction * ray.origin.y / ray.direction.y;
-        let hex = POSITION_TO_CUBE * pos;
+    mouse_pos.on_screen = false;
+    let Ok(entity) = map.single() else {return};
+    for (&ray_id, &ray) in ray_map.iter() {
+        if main_camera.get(ray_id.camera).is_err() {
+            continue;
+        };
+        let depth = ray.origin.y / ray.direction.y;
+        let position = ray.origin - ray.direction * depth;
+        let hit = (
+            entity,
+            HitData{
+                camera: ray_id.camera,
+                depth,
+                position: Some(position),
+                normal: Some(Vec3::Y)
+            },
+        );
+        let picks = vec![hit];
+
+        output.write(PointerHits{
+            pointer: ray_id.pointer,
+            picks,
+            order: -1.0,
+        });
+
+        // Update hovered hexagon
+        let hex = POSITION_TO_CUBE * position;
         mouse_pos.hex_cell  = round_hex(hex).as_ivec3();
         mouse_pos.on_screen = true;
-    } else {
-        mouse_pos.on_screen = false;
     }
 }

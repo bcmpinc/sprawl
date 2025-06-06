@@ -153,6 +153,7 @@ fn setup(
     commands.spawn((
         Name::new("Tilemap"),
         TileMap,
+        // NoFrustumCulling,
         Mesh3d(meshes.add(mesh)),
         MeshMaterial3d(materials.add(TilemapMaterial{
             map: map_handle,
