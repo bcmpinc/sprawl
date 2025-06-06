@@ -12,7 +12,7 @@ use bevy::{
 
 use crate::theme::palette;
 
-use super::{scene::MainCamera, TILE_COUNT, TILE_SIZE};
+use super::prelude::*;
 
 const TILESET_PREVIEW: bool = false;
 

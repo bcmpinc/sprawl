@@ -6,7 +6,7 @@ use bevy::{
     }
 };
 
-use super::TILE_SIZE;
+use super::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
     // Spawn the main camera.

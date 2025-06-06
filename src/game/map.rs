@@ -119,7 +119,7 @@ fn setup(
 
     let mut map_data = Vec::<u8>::with_capacity((MAP_SIZE*MAP_SIZE*4) as usize);
     for _ in 0..MAP_SIZE * MAP_SIZE {
-        map_data.push(rand::thread_rng().gen_range(0..48));
+        map_data.push(rand::thread_rng().gen_range(0..45));
         map_data.push(rand::thread_rng().gen_range(0..6));
         // Init xorshift16 with 0 zero seed.
         let prng: u32 = rand::thread_rng().gen_range(1..65536);
