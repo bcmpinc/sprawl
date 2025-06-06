@@ -36,6 +36,7 @@ const MODELS: &[&str] = &[
     "models/building-smelter.glb",
     "models/grass-forest.glb",
     "models/grass-rocks.glb",
+    "models/grass-path-straight.glb",
 ];
 
 fn setup(
@@ -51,16 +52,20 @@ fn setup(
     });
 
     // Create tiles
-    for (i,file) in MODELS.iter().enumerate() {
+    for (x,file) in MODELS.iter().enumerate() {
+        let px = x as f32 * 2.0;
         let mesh: Handle<Mesh> = asset_server.load(
             GltfAssetLabel::Primitive{ mesh:0, primitive:0 }.from_asset(*file)
         );
-        commands.spawn((
-            Tile::default(),
-            Mesh3d(mesh),
-            MeshMaterial3d(material.clone()),
-            Transform::from_xyz(1.0 + 2.0 * (i as f32), 0.5, -2.0),
-            RenderLayers::layer(1),
-        ));
+        for y in 0..6 {
+            let py = y as f32 * 2.0;
+            commands.spawn((
+                Tile::rotated(y),
+                Mesh3d(mesh.clone()),
+                MeshMaterial3d(material.clone()),
+                Transform::from_xyz(px + 1.0, py + 0.5 , -2.0),
+                RenderLayers::layer(1),
+            ));
+        }
     }
 }

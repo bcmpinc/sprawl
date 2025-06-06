@@ -26,9 +26,9 @@ pub struct Tile {
 }
 
 impl Tile {
-    fn rotated(rotation: i32) -> Self {
+    pub fn rotated(rotation: i32) -> Self {
         Self {
-            rotation: Quat::from_rotation_y(PI * rotation as f32 / 2.0)
+            rotation: Quat::from_rotation_y(PI * rotation as f32 / 3.0)
         }
     }
 }
@@ -46,7 +46,7 @@ pub(super) fn plugin(app: &mut App) {
 fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     let size = Extent3d {
         width: TILE_SIZE * TILE_COUNT,
-        height: TILE_SIZE,
+        height: TILE_SIZE * 6,
         ..default()
     };
 
@@ -112,7 +112,8 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
 
 fn copy_transform(main: Query<&MainCamera>, mut tiles: Query<(&mut Transform, &Tile)>) {
     let Ok(main) = main.single() else {return};
+    let base = main.next_transform.rotation.inverse();
     for (mut transform, tile) in tiles.iter_mut() {
-        transform.rotation = tile.rotation * main.next_transform.rotation.inverse();
+        transform.rotation = base * tile.rotation;
     }
 }
