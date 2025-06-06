@@ -46,7 +46,6 @@ impl Plugin for MapPlugin {
     }
 
     fn finish(&self, app: &mut App) {
-        /*
         if let Some(render_app) = app.get_sub_app_mut(RenderApp) {
             render_app.init_resource::<KernelPipeline>();
             render_app.add_systems(Render, prepare_compute.in_set(RenderSet::Prepare));
@@ -62,7 +61,6 @@ impl Plugin for MapPlugin {
             }*/
             println!("KernelPipeline added");
         }
-        */
     }
 }
 

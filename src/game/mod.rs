@@ -6,8 +6,8 @@ use bevy::{
 
 use crate::screens::Screen;
 
-pub const TILE_SIZE: u32 = 128;
-pub const TILE_COUNT: u32 = 8;
+pub const TILE_SIZE: u32 = 64;
+pub const TILE_COUNT: u32 = 16;
 
 mod map;
 mod mouse;
@@ -46,7 +46,7 @@ fn setup(
     for (i,file) in MODELS.iter().enumerate() {
         commands.spawn((
             SceneRoot(asset_server.load(GltfAssetLabel::Scene(0).from_asset(*file))),
-            Transform::from_xyz(1.0 + 2.0 * (i as f32), 0.5, -2.0).with_scale(vec3(1.01,1.01,1.01)),
+            Transform::from_xyz(1.0 + 2.0 * (i as f32), 0.5, -2.0),//.with_scale(vec3(1.02,1.02,1.02)),
             RenderLayers::layer(1),
         ));
     }
