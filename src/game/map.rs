@@ -1,10 +1,7 @@
 use std::borrow::Cow;
 
 use bevy::{
-    asset::{LoadState, RenderAssetUsages},
-    image::{ImageLoaderSettings, ImageSampler},
-    prelude::*,
-    render::{
+    asset::{LoadState, RenderAssetUsages}, core_pipeline::core_3d::graph::Node3d, image::{ImageLoaderSettings, ImageSampler}, prelude::*, render::{
         extract_resource::{ExtractResource, ExtractResourcePlugin},
         mesh::PrimitiveTopology,
         render_asset::RenderAssets,
@@ -50,15 +47,19 @@ impl Plugin for MapPlugin {
             render_app.init_resource::<KernelPipeline>();
             render_app.add_systems(Render, prepare_compute.in_set(RenderSet::Prepare));
 
+            // Add our compute kernel to the render graph
             let mut render_graph = render_app.world_mut().get_resource_mut::<RenderGraph>().expect("Should be able to get render graph");
             let kernel_node = DispatchKernel{};
-
             render_graph.add_node(MyRenderLabels::Simulate, kernel_node);
-            //render_graph.add_node_edge(CAMERA_DRIVER, "MY STRING");
-            /*let r = render_graph.try_add_node_edge(MyRenderLabels::Simulate, );
+
+            // Set the kernel to run before the main pass.
+            let r = render_graph.try_add_node_edge(
+                MyRenderLabels::Simulate,
+                Node3d::StartMainPass,
+            );
             if r.is_err() {
                 println!("{:?}", r);
-            }*/
+            }
             println!("KernelPipeline added");
         }
     }
