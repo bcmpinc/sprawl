@@ -133,7 +133,7 @@ fn fragment(in: VertexOutput) -> FragmentOutput {
         }
         let offset = (0.5 * position.xy * vec2(1.0,-1.0) + vec2(0.5,0.75));
 
-        let tile = textureLoad(map_texture, vec2<i32>(hex.xy+16.5) % 32);
+        let tile = textureLoad(map_texture, vec2<i32>(hex.xy) & vec2(1023));
         let tile_id  = f32(tile.r);
         let tile_rot = f32(tile.g);
         var new_color = textureSample(tileset_texture, tileset_sampler, (offset + vec2(tile_id, tile_rot))*tile_scale);

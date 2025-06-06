@@ -1,6 +1,5 @@
 use bevy::{
-    prelude::*,
-    render::{
+    input::mouse::MouseMotion, prelude::*, render::{
         camera::ScalingMode,
         view::RenderLayers,
     }
@@ -19,16 +18,22 @@ pub(super) fn plugin(app: &mut App) {
     ));
 }
 
-#[derive(Component, Default)]
+#[derive(Component)]
 pub struct MainCamera {
     pub next_transform: Transform,
+    yaw: f32,   // horizontal angle in radians
+    pitch: f32, // vertical angle in radians
 }
 
 fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         Name::new("Camera"),
         Camera3d::default(),
-        MainCamera::default(),
+        MainCamera{
+            next_transform: default(),
+            yaw: 0.0,
+            pitch: -1.0,
+        },
         Projection::from(OrthographicProjection {
             scaling_mode: ScalingMode::WindowSize,
             scale: 2.0/TILE_SIZE as f32,
@@ -39,23 +44,35 @@ fn spawn_camera(mut commands: Commands) {
 }
 
 fn orbit_camera(
-    time: Res<Time>,
     mut query: Query<(&mut Transform, &mut MainCamera)>,
+    mut motion: EventReader<MouseMotion>,
+    mouse_button: Res<ButtonInput<MouseButton>>,
 ) {
-    let Ok((mut transform, mut main)) = query.single_mut() else {return};
+    let Ok((mut transform, mut main)) = query.single_mut() else { return };
 
-    let radius = 50.0;
-    let elevation = 50.0;
-    let speed = 0.2; // radians per second
+    let mut delta = Vec2::ZERO;
+    for ev in motion.read() {
+        delta += ev.delta;
+    }
 
-    let angle = time.elapsed_secs() * speed;
-    let x = radius * angle.cos();
-    let y = elevation;
-    let z = radius * angle.sin();
+    // Only update if right mouse button is pressed
+    if mouse_button.pressed(MouseButton::Middle) {
+        // Sensitivity can be tuned
+        let sensitivity = 0.005;
+        main.yaw -= delta.x * sensitivity;
+        main.pitch = (main.pitch - delta.y * sensitivity).clamp(-1.5, -0.5); // clamp pitch to avoid gimbal lock
+    }
+
+    if mouse_button.pressed(MouseButton::Right) {
+
+    }
+
+    let rotation = Quat::from_euler(EulerRot::YXZ, main.yaw, main.pitch, 0.0);
 
     *transform = main.next_transform;
-    main.next_transform = Transform::from_xyz(x, y, z).looking_at(Vec3::ZERO, Vec3::Y);
+    main.next_transform.rotation = rotation;
 }
+
 
 fn spawn_light(mut commands: Commands) {
     commands.spawn((
