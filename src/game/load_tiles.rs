@@ -78,12 +78,12 @@ fn setup(
             GltfAssetLabel::Primitive{ mesh:0, primitive:0 }.from_asset(*file)
         );
         for y in 0..6 {
-            let py = y as f32 * 2.0;
+            let py = y as f32 * 4.0;
             commands.spawn((
                 Tile::rotated(y),
                 Mesh3d(mesh.clone()),
                 MeshMaterial3d(material.clone()),
-                Transform::from_xyz(px + 1.0, py + 0.5 , -2.0),
+                Transform::from_xyz(px + 1.0, py + 1.3 , -2.0),
                 RenderLayers::layer(1),
             ));
         }

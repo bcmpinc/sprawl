@@ -48,7 +48,7 @@ pub(super) fn plugin(app: &mut App) {
 fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     let size = Extent3d {
         width: TILE_SIZE * TILE_COUNT,
-        height: TILE_SIZE * 6,
+        height: TILE_SIZE * 12,
         ..default()
     };
 
@@ -114,9 +114,9 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     }
 }
 
-fn copy_transform(main: Query<&MainCamera>, mut tiles: Query<(&mut Transform, &Tile)>) {
+fn copy_transform(main: Query<&Transform, With<MainCamera>>, mut tiles: Query<(&mut Transform, &Tile), Without<MainCamera>>) {
     let Ok(main) = main.single() else {return};
-    let base = main.next_transform.rotation.inverse();
+    let base = main.rotation.inverse();
     for (mut transform, tile) in tiles.iter_mut() {
         transform.rotation = base * tile.rotation;
     }

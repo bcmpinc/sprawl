@@ -12,7 +12,7 @@ mod prelude {
     pub use super::mouse::MousePos;
     pub use super::tileset::{Tileset, Tile};
 
-    pub const TILE_SIZE: u32 = 64;
+    pub const TILE_SIZE: u32 = 128;
     pub const TILE_COUNT: u32 = 48;
     pub const MAP_SIZE: u32 = 1024;
 }
