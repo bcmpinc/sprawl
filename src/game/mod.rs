@@ -1,6 +1,6 @@
-use bevy::{render::view::RenderLayers, scene::SceneInstanceReady};
 #[allow(unused_braces)]
 use bevy::{
+    render::view::RenderLayers,
     prelude::*,
 };
 use tiles::Tile;
@@ -28,8 +28,6 @@ pub(super) fn plugin(app: &mut App) {
         scene::plugin,
         tiles::plugin,
     ));
-
-    //app.add_observer(insert_render_layer);
 
     app.add_systems(OnEnter(Screen::Gameplay), setup);
 }
@@ -66,19 +64,3 @@ fn setup(
         ));
     }
 }
-
-/*
-fn insert_render_layer(
-    trigger: Trigger<SceneInstanceReady>,
-    children: Query<&Children>,
-    mesh: Query<(), With<Mesh3d>>,
-    mut commands: Commands,
-) {
-    let entity = trigger.target();
-    for child in children.iter_descendants(entity) {
-        if mesh.contains(child) {
-            commands.entity(child).insert(RenderLayers::layer(1));
-        }
-    }
-}
-*/
