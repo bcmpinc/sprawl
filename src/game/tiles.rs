@@ -14,6 +14,8 @@ use crate::theme::palette;
 
 use super::{scene::MainCamera, TILE_COUNT, TILE_SIZE};
 
+const TILESET_PREVIEW: bool = false;
+
 #[derive(Resource)]
 pub struct Tileset(pub Handle<Image>);
 
@@ -86,28 +88,30 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
         RenderLayers::layer(1),
     ));
 
-    commands.spawn(Node {
-        width: Val::Percent(100.0),
-        height: Val::Percent(100.0),
-        flex_direction: FlexDirection::Column,
-        justify_content: JustifyContent::FlexEnd,
-        align_items: AlignItems::Center,
-        padding: UiRect::all(Val::Px(4.0)),
-        ..default()
-    }).with_children(|parent| {
-        parent.spawn((
-            ImageNode::new(
-                image_handle.clone(),
-            ),
-            Node {
-                width: Val::Px(size.width as f32),
-                height: Val::Px(size.height as f32),
-                ..default()
-            },
-            BackgroundColor(palette::BUTTON_HOVERED_BACKGROUND),
-            Outline::new(Val::Px(2.0), Val::ZERO, palette::BUTTON_PRESSED_BACKGROUND),
-        ));
-    });
+    if TILESET_PREVIEW {
+        commands.spawn(Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::FlexEnd,
+            align_items: AlignItems::Center,
+            padding: UiRect::all(Val::Px(4.0)),
+            ..default()
+        }).with_children(|parent| {
+            parent.spawn((
+                ImageNode::new(
+                    image_handle.clone(),
+                ),
+                Node {
+                    width: Val::Px(size.width as f32),
+                    height: Val::Px(size.height as f32),
+                    ..default()
+                },
+                BackgroundColor(palette::BUTTON_HOVERED_BACKGROUND),
+                Outline::new(Val::Px(2.0), Val::ZERO, palette::BUTTON_PRESSED_BACKGROUND),
+            ));
+        });
+    }
 }
 
 fn copy_transform(main: Query<&MainCamera>, mut tiles: Query<(&mut Transform, &Tile)>) {

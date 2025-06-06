@@ -8,7 +8,7 @@ use tiles::Tile;
 use crate::screens::Screen;
 
 pub const TILE_SIZE: u32 = 128;
-pub const TILE_COUNT: u32 = 16;
+pub const TILE_COUNT: u32 = 48;
 
 mod map;
 mod mouse;
