@@ -7,9 +7,6 @@ use tiles::Tile;
 
 use crate::screens::Screen;
 
-pub const TILE_SIZE: u32 = 128;
-pub const TILE_COUNT: u32 = 48;
-
 mod map;
 mod mouse;
 mod scene;
@@ -19,7 +16,13 @@ mod tiles;
 mod prelude {
     pub use super::scene::MainCamera;
     pub use super::mouse::MousePos;
+    pub use super::tiles::Tileset;
+
+    pub const TILE_SIZE: u32 = 128;
+    pub const TILE_COUNT: u32 = 48;
+    pub const MAP_SIZE: u32 = 1024;
 }
+use prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins((

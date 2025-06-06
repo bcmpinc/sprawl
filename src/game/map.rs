@@ -1,22 +1,27 @@
 use std::borrow::Cow;
 
 use bevy::{
-    asset::{LoadState, RenderAssetUsages}, core_pipeline::core_3d::graph::Node3d, image::{ImageLoaderSettings, ImageSampler}, prelude::*, render::{
+    asset::RenderAssetUsages,
+    image::ImageSampler,
+    prelude::*,
+    render::{
         extract_resource::{ExtractResource, ExtractResourcePlugin},
+        graph::CameraDriverLabel,
         mesh::PrimitiveTopology,
         render_asset::RenderAssets,
         render_graph::{Node, RenderGraph, RenderLabel},
-        render_resource::{AsBindGroup, BindGroup, BindGroupLayout, CachedComputePipelineId, ComputePassDescriptor, ComputePipelineDescriptor, PipelineCache, ShaderRef, TextureUsages},
+        render_resource::{AsBindGroup, BindGroup, BindGroupLayout, CachedComputePipelineId, ComputePassDescriptor, ComputePipelineDescriptor, Extent3d, PipelineCache, ShaderRef, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages},
         renderer::RenderDevice,
         storage::GpuShaderStorageBuffer,
         texture::{FallbackImage, GpuImage},
         Render, RenderApp, RenderSet
     }
 };
+use rand::Rng;
 
 use crate::screens::Screen;
 
-use super::{prelude::*, tiles::Tileset, TILE_SIZE, TILE_COUNT};
+use super::prelude::*;
 
 pub(super) struct MapPlugin;
 
@@ -39,7 +44,6 @@ impl Plugin for MapPlugin {
         });
         app.add_systems(OnEnter(Screen::Gameplay), setup);
         app.add_systems(Update, update_tile);
-        app.add_systems(Update, configure_image);
     }
 
     fn finish(&self, app: &mut App) {
@@ -55,7 +59,7 @@ impl Plugin for MapPlugin {
             // Set the kernel to run before the main pass.
             let r = render_graph.try_add_node_edge(
                 MyRenderLabels::Simulate,
-                Node3d::StartMainPass,
+                CameraDriverLabel,
             );
             if r.is_err() {
                 println!("{:?}", r);
@@ -70,11 +74,16 @@ impl Plugin for MapPlugin {
  */
 #[derive(Asset, Reflect, AsBindGroup, Debug, Clone)]
 pub struct TilemapMaterial {
-    #[texture(0)] map: Handle<Image>,
+    #[storage_texture(0, image_format=Rgba8Uint, visibility(vertex,fragment), access=ReadOnly)] map: Handle<Image>,
     #[texture(1)] #[sampler(2)] tileset: Handle<Image>,
     #[uniform(3)] hover_tile: Vec4,
     #[uniform(4)] tile_size: f32,
     #[uniform(5)] tile_count: f32,
+}
+
+#[derive(TypePath,AsBindGroup,Resource,Clone,ExtractResource)]
+struct ShaderData {
+    #[storage_texture(0, image_format=Rgba8Uint)] tiles: Handle<Image>,
 }
 
 impl Material for TilemapMaterial {
@@ -89,9 +98,9 @@ impl Material for TilemapMaterial {
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
+    mut images: ResMut<Assets<Image>>,
     mut materials: ResMut<Assets<TilemapMaterial>>,
     tileset: Res<Tileset>,
-    assets: Res<AssetServer>,
 ) {
     // Fullscreen triangle (covers full screen)
     let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::RENDER_WORLD);
@@ -102,21 +111,51 @@ fn setup(
         [-1.0,  1.0, 0.0],
     ]);
 
-    let map : Handle<Image> = assets.load_with_settings(
-        "images/ducky_shear.png",
-        |settings: &mut ImageLoaderSettings| {
-            // Use `nearest` image sampling to preserve pixel art style.
-            settings.sampler = ImageSampler::nearest();
-            settings.is_srgb = false;
+    let size = Extent3d {
+        width: MAP_SIZE,
+        height: MAP_SIZE,
+        ..default()
+    };
+
+    let mut map_data = Vec::<u8>::with_capacity((MAP_SIZE*MAP_SIZE*4) as usize);
+    for _ in 0..MAP_SIZE * MAP_SIZE {
+        map_data.push(rand::thread_rng().gen_range(0..48));
+        map_data.push(rand::thread_rng().gen_range(0..6));
+        // Init xorshift16 with 0 zero seed.
+        let prng: u32 = rand::thread_rng().gen_range(1..65536);
+        map_data.push((prng / 256) as u8);
+        map_data.push((prng % 256) as u8);
+    }
+
+    // This is the texture that will be rendered to.
+    let map_image = Image {
+        data: Some(map_data),
+        texture_descriptor: TextureDescriptor {
+            label: None,
+            size,
+            format: TextureFormat::Rgba8Uint,
+            dimension: TextureDimension::D2,
+            mip_level_count: 1,
+            sample_count: 1,
+            usage: TextureUsages::TEXTURE_BINDING | TextureUsages::COPY_DST | TextureUsages::STORAGE_BINDING,
+            view_formats: &[],
         },
-    );
+        sampler: ImageSampler::nearest(),
+        texture_view_descriptor: None,
+        asset_usage: RenderAssetUsages::RENDER_WORLD,
+    };
+
+    let map_handle = images.add(map_image);
+    commands.insert_resource(ShaderData {
+        tiles: map_handle.clone()
+    });
 
     commands.spawn((
         Name::new("Tilemap"),
         TileMap,
         Mesh3d(meshes.add(mesh)),
         MeshMaterial3d(materials.add(TilemapMaterial{
-            map,
+            map: map_handle,
             tileset: tileset.0.clone(),
             hover_tile: Vec4::ZERO,
             tile_size: TILE_SIZE as f32,
@@ -133,11 +172,6 @@ fn update_tile(mouse: Res<MousePos>, mut materials: ResMut<Assets<TilemapMateria
             if mouse.on_screen {0.0} else {1.0}
         ) ;
     }
-}
-
-#[derive(TypePath,AsBindGroup,Resource,Clone,ExtractResource)]
-struct ShaderData {
-    #[storage_texture(0)] tiles: Handle<Image>,
 }
 
 #[derive(Resource)]
@@ -177,33 +211,6 @@ pub struct DispatchKernel;
 
 #[derive(Debug, Resource)]
 pub struct KernelBindGroup(pub BindGroup);
-
-
-
-fn configure_image(
-    mut commands: Commands,
-    mut images: ResMut<Assets<Image>>,
-    material: Res<Assets<TilemapMaterial>>,
-    asset_server: Res<AssetServer>,
-    shader_data: Option<Res<ShaderData>>,
-) {
-    if shader_data.is_some() {return}
-    let Some(material) = &material.iter().next() else {return};
-    let handle = material.1.map.id();
-
-    // Wait until asset is fully loaded
-    if matches!(asset_server.get_load_state(handle), Some(LoadState::Loaded)) {
-        if let Some(image) = images.get_mut(handle) {
-            // Add the STORAGE_BINDING flag
-            image.texture_descriptor.usage |= TextureUsages::STORAGE_BINDING;
-            println!("Changed storage flag!");
-
-            commands.insert_resource(ShaderData {
-                tiles: material.1.map.clone()
-            });
-        }
-    }
-}
 
 fn prepare_compute<'a>(
     mut commands: Commands,

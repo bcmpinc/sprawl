@@ -1,6 +1,6 @@
 #import bevy_pbr::mesh_view_bindings::view
 
-@group(2) @binding(0) var map_texture: texture_2d<f32>;
+@group(2) @binding(0) var map_texture: texture_storage_2d<rgba8uint, read>;
 @group(2) @binding(1) var tileset_texture: texture_2d<f32>;
 @group(2) @binding(2) var tileset_sampler: sampler;
 @group(2) @binding(3) var<uniform> hover: vec4<f32>;
@@ -133,9 +133,9 @@ fn fragment(in: VertexOutput) -> FragmentOutput {
         }
         let offset = (0.5 * position.xy * vec2(1.0,-1.0) + vec2(0.5,0.75));
 
-        let tile = textureLoad(map_texture, vec2<i32>(hex.xy+16.5) % 32, 0);
-        let tile_id  = f32(i32(dot(tile, vec4(1237.,435.,6231.,123.))) % 4);
-        let tile_rot = f32(i32(dot(tile, vec4(13.,19.,7.,51.))) % 6);
+        let tile = textureLoad(map_texture, vec2<i32>(hex.xy+16.5) % 32);
+        let tile_id  = f32(tile.r);
+        let tile_rot = f32(tile.g);
         var new_color = textureSample(tileset_texture, tileset_sampler, (offset + vec2(tile_id, tile_rot))*tile_scale);
         if new_color.a > 0.1 && depth < position.y {
             new_color = multiply_alpha(new_color);
