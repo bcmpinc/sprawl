@@ -14,7 +14,7 @@ use crate::theme::palette;
 
 use super::prelude::*;
 
-const TILESET_PREVIEW: bool = false;
+const TILESET_PREVIEW: bool = true;
 
 #[derive(Resource)]
 pub struct Tileset(pub Handle<Image>);
@@ -103,8 +103,8 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
                     image_handle.clone(),
                 ),
                 Node {
-                    width: Val::Px(size.width as f32),
-                    height: Val::Px(size.height as f32),
+                    width: Val::Px(size.width as f32 / 2.0),
+                    height: Val::Px(size.height as f32 / 2.0),
                     ..default()
                 },
                 BackgroundColor(palette::BUTTON_HOVERED_BACKGROUND),

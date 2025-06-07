@@ -11,52 +11,61 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), setup);
 }
 
-const MODELS: &[&str] = &[
-    "models/bridge-path-a.glb",
-    "models/bridge-path-b.glb",
-    "models/bridge-path.glb",
-    "models/building-archery.glb",
-    "models/building-cabin.glb",
-    "models/building-castle-path.glb",
-    "models/building-farm.glb",
-    "models/building-house.glb",
-    "models/building-market.glb",
-    "models/building-mill.glb",
-    "models/building-mine.glb",
-    "models/building-port.glb",
-    "models/building-sheep.glb",
-    "models/building-smelter.glb",
-    "models/building-tower.glb",
-    "models/building-village.glb",
-    "models/building-watermill.glb",
-    "models/building-wizard-tower.glb",
-    "models/grass-forest.glb",
-    "models/grass.glb",
-    "models/grass-hill.glb",
-    "models/grass-lumber.glb",
-    "models/grass-path-corner.glb",
-    "models/grass-path-intersection.glb",
-    "models/grass-path-left.glb",
-    "models/grass-path-right.glb",
-    "models/grass-path-start.glb",
-    "models/grass-path-straight.glb",
-    "models/grass-rocks.glb",
-    "models/river-corner.glb",
-    "models/river-intersection.glb",
-    "models/river-left.glb",
-    "models/river-right.glb",
-    "models/river-start.glb",
-    "models/river-straight.glb",
-    "models/stone-hill.glb",
-    "models/stone-mountain.glb",
-    "models/water-boat.glb",
-    "models/water-corner-in.glb",
-    "models/water-corner-out.glb",
-    "models/water.glb",
-    "models/water-island.glb",
-    "models/water-river.glb",
-    "models/water-rocks.glb",
-    "models/water-straight.glb",
+struct Model {
+    path: &'static str,
+    edges: &'static str,
+}
+
+const fn model(path: &'static str, edges: &'static str) -> Model {
+    Model{path, edges}
+}
+
+const MODELS: &[Model] = &[
+    model("models/bridge-path-a.glb",           "......"),
+    model("models/bridge-path-b.glb",           "......"),
+    model("models/bridge-path.glb",             "......"),
+    model("models/building-archery.glb",        "......"),
+    model("models/building-cabin.glb",          "......"),
+    model("models/building-castle-path.glb",    "......"),
+    model("models/building-farm.glb",           "......"),
+    model("models/building-house.glb",          "......"),
+    model("models/building-market.glb",         "......"),
+    model("models/building-mill.glb",           "......"),
+    model("models/building-mine.glb",           "......"),
+    model("models/building-port.glb",           "......"),
+    model("models/building-sheep.glb",          "......"),
+    model("models/building-smelter.glb",        "......"),
+    model("models/building-tower.glb",          "......"),
+    model("models/building-village.glb",        "......"),
+    model("models/building-watermill.glb",      "......"),
+    model("models/building-wizard-tower.glb",   "......"),
+    model("models/grass-forest.glb",            "......"),
+    model("models/grass.glb",                   "......"),
+    model("models/grass-hill.glb",              "......"),
+    model("models/grass-lumber.glb",            "......"),
+    model("models/grass-path-corner.glb",       "......"),
+    model("models/grass-path-intersection.glb", "......"),
+    model("models/grass-path-left.glb",         "......"),
+    model("models/grass-path-right.glb",        "......"),
+    model("models/grass-path-start.glb",        "......"),
+    model("models/grass-path-straight.glb",     "......"),
+    model("models/grass-rocks.glb",             "......"),
+    model("models/river-corner.glb",            "......"),
+    model("models/river-intersection.glb",      "......"),
+    model("models/river-left.glb",              "......"),
+    model("models/river-right.glb",             "......"),
+    model("models/river-start.glb",             "......"),
+    model("models/river-straight.glb",          "......"),
+    model("models/stone-hill.glb",              "......"),
+    model("models/stone-mountain.glb",          "......"),
+    model("models/water-boat.glb",              "......"),
+    model("models/water-corner-in.glb",         "......"),
+    model("models/water-corner-out.glb",        "......"),
+    model("models/water.glb",                   "......"),
+    model("models/water-island.glb",            "......"),
+    model("models/water-river.glb",             "......"),
+    model("models/water-rocks.glb",             "......"),
+    model("models/water-straight.glb",          "......"),
 ];
 
 fn setup(
@@ -75,7 +84,7 @@ fn setup(
     for (x,file) in MODELS.iter().enumerate() {
         let px = x as f32 * 2.0;
         let mesh: Handle<Mesh> = asset_server.load(
-            GltfAssetLabel::Primitive{ mesh:0, primitive:0 }.from_asset(*file)
+            GltfAssetLabel::Primitive{ mesh:0, primitive:0 }.from_asset(file.path)
         );
         for y in 0..6 {
             let py = y as f32 * 4.0;
