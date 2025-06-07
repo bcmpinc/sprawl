@@ -14,6 +14,7 @@ use bevy::{
         renderer::RenderDevice,
         storage::GpuShaderStorageBuffer,
         texture::{FallbackImage, GpuImage},
+        view::NoFrustumCulling,
         Render, RenderApp, RenderSet
     }
 };
@@ -153,7 +154,7 @@ fn setup(
     commands.spawn((
         Name::new("Tilemap"),
         TileMap,
-        // NoFrustumCulling,
+        NoFrustumCulling,
         Mesh3d(meshes.add(mesh)),
         MeshMaterial3d(materials.add(TilemapMaterial{
             map: map_handle,

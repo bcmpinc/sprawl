@@ -1,13 +1,17 @@
 use bevy::{
-    input::mouse::MouseMotion, prelude::*, render::{
+    prelude::*,
+    render::{
         camera::ScalingMode,
         view::RenderLayers,
     }
 };
+use bevy_editor_cam::prelude::*;
 
 use super::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
+    app.add_plugins(DefaultEditorCamPlugins);
+
     app.register_type::<MainCamera>();
 
     // Spawn the main camera.
@@ -15,71 +19,46 @@ pub(super) fn plugin(app: &mut App) {
         spawn_camera,
         spawn_light,
     ));
-    app.add_systems(PreUpdate, (
-        orbit_camera,
-    ));
 }
 
 #[derive(Component, Reflect)]
 #[reflect(Component)]
-pub struct MainCamera {
-    pub next_transform: Transform,
-    yaw: f32,   // horizontal angle in radians
-    pitch: f32, // vertical angle in radians
-}
+pub struct MainCamera;
 
 fn spawn_camera(mut commands: Commands) {
     commands.spawn((
-        Name::new("Camera"),
+        Name::new("Main Camera"),
         Camera3d::default(),
-        MainCamera{
-            next_transform: default(),
-            yaw: 0.0,
-            pitch: -1.0,
+        EditorCam{
+            enabled_motion: EnabledMotion{
+                pan: true,
+                orbit: true,
+                zoom: true,
+            },
+            orbit_constraint: default(),
+            zoom_limits: default(),
+            smoothing: default(),
+            sensitivity: default(),
+            momentum: default(),
+            input_debounce: default(),
+            perspective: default(),
+            orthographic: default(),
+            last_anchor_depth: default(),
+            current_motion: default(),
         },
+        MainCamera,
         Projection::from(OrthographicProjection {
             scaling_mode: ScalingMode::WindowSize,
             scale: 2.0/TILE_SIZE as f32,
             ..OrthographicProjection::default_3d()
         }),
         Transform{
-            rotation: Quat::from_rotation_y(-1.0),
+            rotation: Quat::from_rotation_x(-1.0), // from_euler(EulerRot::YXZ, 0.0, -1.0, 0.0),
             translation: Vec3::ZERO,
             scale: Vec3::ONE,
         },
     ));
 }
-
-fn orbit_camera(
-    mut query: Query<(&mut Transform, &mut MainCamera)>,
-    mut motion: EventReader<MouseMotion>,
-    mouse_button: Res<ButtonInput<MouseButton>>,
-) {
-    let Ok((mut transform, mut main)) = query.single_mut() else { return };
-
-    let mut delta = Vec2::ZERO;
-    for ev in motion.read() {
-        delta += ev.delta;
-    }
-
-    // Only update if right mouse button is pressed
-    if mouse_button.pressed(MouseButton::Middle) {
-        // Sensitivity can be tuned
-        let sensitivity = 0.005;
-        main.yaw -= delta.x * sensitivity;
-        main.pitch = (main.pitch - delta.y * sensitivity).clamp(-1.5, -0.5); // clamp pitch to avoid gimbal lock
-    }
-
-    if mouse_button.pressed(MouseButton::Right) {
-
-    }
-
-    let rotation = Quat::from_euler(EulerRot::YXZ, main.yaw, main.pitch, 0.0);
-
-    *transform = main.next_transform;
-    main.next_transform.rotation = rotation;
-}
-
 
 fn spawn_light(mut commands: Commands) {
     commands.spawn((
