@@ -21,6 +21,7 @@ pub(super) fn plugin(app: &mut App) {
         spawn_camera,
         spawn_light,
     ));
+    app.add_systems(Update, clamp_pitch);
     app.add_systems(Last, lag_transform);
 }
 
@@ -104,5 +105,15 @@ pub struct LaggedTransform(GlobalTransform);
 fn lag_transform(query: Query<(&mut GlobalTransform, &mut LaggedTransform)>) {
     for (mut trans, mut lag) in query {
         swap(&mut *trans, &mut lag.0);
+    }
+}
+
+fn clamp_pitch(mut query: Query<(&mut Transform, &LaggedTransform), With<MainCamera>>) {
+    let Ok((mut camera, lag)) = query.single_mut() else {return};
+    let (yaw, mut pitch, roll) = camera.rotation.to_euler(EulerRot::YXZ);
+    if pitch > -0.5 {
+        pitch = -0.5;
+        camera.translation = lag.0.translation();
+        camera.rotation = lag.0.rotation(); //Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
     }
 }
