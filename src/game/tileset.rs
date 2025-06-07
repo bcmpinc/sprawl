@@ -106,10 +106,12 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
                 Name::new("Tileset preview"),
                 ImageNode::new(
                     image_handle.clone(),
+                ).with_rect(
+                    Rect::new(0.0, 0.0, size.width as f32, TILE_SIZE as f32)
                 ),
                 Node {
                     width: Val::Px(size.width as f32 / 2.0),
-                    height: Val::Px(size.height as f32 / 2.0),
+                    height: Val::Px(TILE_SIZE as f32 / 2.0),
                     ..default()
                 },
                 BackgroundColor(palette::BUTTON_HOVERED_BACKGROUND),

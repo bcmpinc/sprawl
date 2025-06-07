@@ -15,6 +15,7 @@ use super::prelude::*;
 pub struct MousePos {
     pub hex_cell: IVec3,
     pub on_screen: bool,
+    pub click_started: Option<Vec2>,
     pub click: bool,
 }
 
@@ -23,6 +24,7 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<MousePos>();
     app.add_plugins(ExtractResourcePlugin::<MousePos>::default());
     app.add_systems(PreUpdate, tracking.in_set(PickSet::Backend));
+    app.add_systems(First, |mut mousepos: ResMut<MousePos>| {mousepos.click = false;});
 }
 
 /// Casts rays into the scene using [`MeshPickingSettings`] and sends [`PointerHits`] events.

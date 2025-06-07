@@ -166,11 +166,30 @@ fn setup(
         Transform::IDENTITY,
     )).observe(|trigger: Trigger<Pointer<Move>>, mut mouse_pos: ResMut<MousePos>|{
         mouse_pos.on_screen = true;
+        match mouse_pos.click_started {
+            Some(start) if trigger.pointer_location.position.distance_squared(start) > 10.0 => mouse_pos.click_started = None,
+            _ => {}
+        }
+
         // Update hovered hexagon
         let hex = POSITION_TO_CUBE * trigger.event().hit.position.unwrap();
         mouse_pos.hex_cell  = round_hex(hex).as_ivec3();
     }).observe(|_trigger: Trigger<Pointer<Out>>, mut mouse_pos: ResMut<MousePos>|{
         mouse_pos.on_screen = false;
+        mouse_pos.click_started = None;
+    }).observe(|trigger: Trigger<Pointer<Pressed>>, mut mouse_pos: ResMut<MousePos>|{
+        if trigger.button == PointerButton::Primary {
+            mouse_pos.click_started = Some(trigger.pointer_location.position);
+        }
+    }).observe(|trigger: Trigger<Pointer<Released>>, mut mouse_pos: ResMut<MousePos>|{
+        match mouse_pos.click_started {
+            Some(start) if trigger.pointer_location.position.distance_squared(start) <= 10.0 && trigger.button == PointerButton::Primary => {
+                println!("Clicked!");
+                mouse_pos.click = true;
+                mouse_pos.click_started = None;
+            }
+            _ => {}
+        }
     });
 }
 
