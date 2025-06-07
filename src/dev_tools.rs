@@ -1,7 +1,12 @@
 //! Development tools for the game. This plugin is only enabled in dev builds.
 
 use bevy::{
-    dev_tools::states::log_transitions, input::common_conditions::input_just_pressed, prelude::*,
+    dev_tools::{
+        picking_debug::{DebugPickingMode, DebugPickingPlugin},
+        states::log_transitions
+    },
+    input::common_conditions::input_just_pressed,
+    prelude::*,
     ui::UiDebugOptions,
 };
 
@@ -10,7 +15,12 @@ use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 
 use crate::screens::Screen;
 
+const TOGGLE_KEY: KeyCode = KeyCode::Backquote;
+const PICKING_DEBUG_KEY: KeyCode = KeyCode::F3;
+
 pub(super) fn plugin(app: &mut App) {
+    app.add_plugins(DebugPickingPlugin);
+
     // Log `Screen` state transitions.
     app.add_systems(Update, log_transitions::<Screen>);
 
@@ -25,9 +35,21 @@ pub(super) fn plugin(app: &mut App) {
         EguiPlugin { enable_multipass_for_primary_context: true },
         WorldInspectorPlugin::new(),
     ));
-}
 
-const TOGGLE_KEY: KeyCode = KeyCode::Backquote;
+    app.add_systems(
+        PreUpdate,
+        (|mut mode: ResMut<DebugPickingMode>| {
+            *mode = match *mode {
+                DebugPickingMode::Disabled => DebugPickingMode::Normal,
+                DebugPickingMode::Normal => DebugPickingMode::Noisy,
+                DebugPickingMode::Noisy => DebugPickingMode::Disabled,
+            }
+        }).distributive_run_if(input_just_pressed(
+            PICKING_DEBUG_KEY,
+        )),
+    );
+
+}
 
 fn toggle_debug_ui(mut options: ResMut<UiDebugOptions>) {
     options.toggle();
