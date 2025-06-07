@@ -1,4 +1,10 @@
-#import bevy_pbr::mesh_view_bindings::view
+#import bevy_pbr::view_transformations::{
+    direction_clip_to_world,
+    position_clip_to_view,
+    position_clip_to_world,
+    position_world_to_clip,
+    position_world_to_view,
+}
 
 @group(2) @binding(0) var map_texture: texture_storage_2d<rgba8uint, read>;
 @group(2) @binding(1) var tileset_texture: texture_2d<f32>;
@@ -8,12 +14,12 @@
 @group(2) @binding(5) var<uniform> tilecount: f32;
 
 struct VertexInput {
-    @location(0) pixel: vec3<f32>,
+    @location(0) clip_pos: vec3<f32>,
 };
 
 struct VertexOutput {
     @builtin(position) position: vec4<f32>,
-    @location(1) pixel: vec4<f32>,
+    @location(1) view_pos: vec3<f32>,
     @location(2) hexagon: vec3<f32>,
 };
 
@@ -45,19 +51,16 @@ const SUM_OTHER: mat3x3<f32> = mat3x3<f32>(
 /// Used for rendering a full screen triangle.
 @vertex
 fn vertex(in: VertexInput) -> VertexOutput {
-    let a = view.world_from_clip * vec4(in.pixel.xy, -1.0, 1.0);
-    let b = view.world_from_clip * vec4(in.pixel.xy,  1.0, 1.0);
-    let plane_pos = (a*b.y - b*a.y) / (b.y - a.y);
+    let clip_pos  = vec4(in.clip_pos.xy, 0.0, 1.0);
+    let origin    = position_clip_to_world(clip_pos);
+    let direction = direction_clip_to_world(vec4(0.0, 0.0, 1.0, 0.0));
+    let depth     = origin.y / direction.y;
+    let position  = origin - direction * depth;
 
     var out: VertexOutput;
-    let pos = vec4<f32>(in.pixel, 1.0);
-    out.position = pos;
-    out.pixel = view.view_from_clip * pos;
-    // out.pixel2 = view.clip_from_world * view.world_from_clip * out.pixel; //vec4(plane_pos);
-    // out.pixel2 = view.clip_from_world * view.world_from_clip * out.pixel; //vec4(plane_pos);
-    // out.pixel2 = view.clip_from_world * view.world_from_clip * out.pixel; //vec4(plane_pos);
-    // out.pixel2 = view.clip_from_world * view.world_from_clip * out.pixel; //vec4(plane_pos);
-    out.hexagon = POSITION_TO_CUBE * plane_pos.xz;
+    out.position = vec4<f32>(in.clip_pos, 1.0);
+    out.view_pos = position_clip_to_view(clip_pos);
+    out.hexagon = POSITION_TO_CUBE * position.xz;
     return out;
 }
 
@@ -126,8 +129,8 @@ fn fragment(in: VertexOutput) -> FragmentOutput {
 
     for (var i = 0; i < 7; i += 1) {
         let hex = center_hex + OFFSETS[i];
-        let hex_position = vec4(CUBE_TO_POSITION * hex, 0.0, 1.0).xzyw;
-        let position = in.pixel - view.view_from_world * hex_position;
+        let hex_position = vec3(CUBE_TO_POSITION * hex, 0.0).xzy;
+        let position = in.view_pos - position_world_to_view(hex_position);
         if position.x < -1.0 || 1.0 < position.x {
             continue;
         }
