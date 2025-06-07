@@ -5,6 +5,7 @@ use bevy::{
     },
     prelude::*,
     render::extract_resource::{ExtractResource, ExtractResourcePlugin},
+    window::PrimaryWindow,
 };
 
 use super::prelude::*;
@@ -29,13 +30,19 @@ pub fn tracking(
     ray_map: Res<RayMap>,
     main_camera: Query<&Camera, With<MainCamera>>,
     map: Query<Entity, With<TileMap>>,
+    window: Query<&Window, With<PrimaryWindow>>,
     mut output: EventWriter<PointerHits>,
 ) {
     let Ok(entity) = map.single() else {return};
+
+    // Because Raymap contains rays for mouse cursors that are no longer inside the window.
+    if window.single().unwrap().cursor_position().is_none() {return}
+
     for (&ray_id, &ray) in ray_map.iter() {
         let Ok(camera) = main_camera.get(ray_id.camera) else {
             continue;
         };
+
         let depth = ray.origin.y / ray.direction.y;
         let position = ray.origin - ray.direction * depth;
         let hit = (

@@ -169,9 +169,8 @@ fn setup(
         // Update hovered hexagon
         let hex = POSITION_TO_CUBE * trigger.event().hit.position.unwrap();
         mouse_pos.hex_cell  = round_hex(hex).as_ivec3();
-    }).observe(|trigger: Trigger<Pointer<Out>>, mut mouse_pos: ResMut<MousePos>|{
+    }).observe(|_trigger: Trigger<Pointer<Out>>, mut mouse_pos: ResMut<MousePos>|{
         mouse_pos.on_screen = false;
-        println!("Mouse Out {:?}", trigger.event());
     });
 }
 
