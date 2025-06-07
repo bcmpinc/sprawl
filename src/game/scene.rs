@@ -1,3 +1,5 @@
+use std::mem::swap;
+
 use bevy::{
     prelude::*,
     render::{
@@ -19,6 +21,7 @@ pub(super) fn plugin(app: &mut App) {
         spawn_camera,
         spawn_light,
     ));
+    app.add_systems(Last, lag_transform);
 }
 
 #[derive(Component, Reflect)]
@@ -47,6 +50,7 @@ fn spawn_camera(mut commands: Commands) {
             current_motion: default(),
         },
         MainCamera,
+        LaggedTransform(default()),
         Projection::from(OrthographicProjection {
             scaling_mode: ScalingMode::WindowSize,
             scale: 2.0/TILE_SIZE as f32,
@@ -92,4 +96,13 @@ fn spawn_light(mut commands: Commands) {
             )
         ],
     ));
+}
+
+#[derive(Component)]
+pub struct LaggedTransform(GlobalTransform);
+
+fn lag_transform(query: Query<(&mut GlobalTransform, &mut LaggedTransform)>) {
+    for (mut trans, mut lag) in query {
+        swap(&mut *trans, &mut lag.0);
+    }
 }
