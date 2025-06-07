@@ -89,16 +89,21 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     ));
 
     if TILESET_PREVIEW {
-        commands.spawn(Node {
-            width: Val::Percent(100.0),
-            height: Val::Percent(100.0),
-            flex_direction: FlexDirection::Column,
-            justify_content: JustifyContent::FlexEnd,
-            align_items: AlignItems::Center,
-            padding: UiRect::all(Val::Px(4.0)),
-            ..default()
-        }).with_children(|parent| {
+        commands.spawn((
+            Name::new("GUI Container"),
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::FlexEnd,
+                align_items: AlignItems::Center,
+                padding: UiRect::all(Val::Px(4.0)),
+                ..default()
+            },
+            Pickable::IGNORE,
+        )).with_children(|parent| {
             parent.spawn((
+                Name::new("Tileset preview"),
                 ImageNode::new(
                     image_handle.clone(),
                 ),

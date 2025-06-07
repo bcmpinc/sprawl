@@ -10,9 +10,6 @@ use bevy::{
     ui::UiDebugOptions,
 };
 
-#[cfg(feature = "dev_native")]
-use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
-
 use crate::screens::Screen;
 
 const TOGGLE_KEY: KeyCode = KeyCode::Backquote;
@@ -30,11 +27,25 @@ pub(super) fn plugin(app: &mut App) {
         toggle_debug_ui.run_if(input_just_pressed(TOGGLE_KEY)),
     );
 
-    #[cfg(feature = "dev_native")]
-    app.add_plugins((
-        EguiPlugin { enable_multipass_for_primary_context: true },
-        WorldInspectorPlugin::new(),
-    ));
+    #[cfg(feature = "dev_native")] {
+        use bevy_inspector_egui::{
+            bevy_egui::{EguiPlugin, EguiGlobalSettings},
+            quick::WorldInspectorPlugin
+        };
+
+        app.insert_resource(EguiGlobalSettings{
+            enable_focused_non_window_context_updates: true,
+            input_system_settings: default(),
+            enable_absorb_bevy_input_system: true,
+        });
+
+        app.add_plugins((
+            EguiPlugin {
+                enable_multipass_for_primary_context: true,
+            },
+            WorldInspectorPlugin::new(),
+        ));
+    }
 
     app.add_systems(
         PreUpdate,

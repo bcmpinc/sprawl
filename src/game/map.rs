@@ -164,13 +164,36 @@ fn setup(
             tile_count: TILE_COUNT as f32,
         })),
         Transform::IDENTITY,
-    )).observe(|_trigger: Trigger<Pointer<Over>>, mut mouse_pos: ResMut<MousePos>|{
+    )).observe(|trigger: Trigger<Pointer<Move>>, mut mouse_pos: ResMut<MousePos>|{
         mouse_pos.on_screen = true;
-        // println!("Mouse Hover {:?}", trigger);
-    }).observe(|_trigger: Trigger<Pointer<Out>>, mut mouse_pos: ResMut<MousePos>|{
+        // Update hovered hexagon
+        let hex = POSITION_TO_CUBE * trigger.event().hit.position.unwrap();
+        mouse_pos.hex_cell  = round_hex(hex).as_ivec3();
+    }).observe(|trigger: Trigger<Pointer<Out>>, mut mouse_pos: ResMut<MousePos>|{
         mouse_pos.on_screen = false;
-        // println!("Mouse Out {:?}", trigger);
+        println!("Mouse Out {:?}", trigger.event());
     });
+}
+
+const R: f32 = 0.57735027; // 1.0 / f32::sqrt(3.0);
+
+const POSITION_TO_CUBE: Mat3 = Mat3::from_cols(
+    vec3( 1.0,  0.0,-1.0),
+    vec3( 0.0,  0.0, 0.0),
+    vec3(- R ,2.0*R, -R )
+);
+
+fn round_hex(hex: Vec3) -> Vec3 {
+    let mut res = Vec3::round(hex);
+    let diff = Vec3::abs(hex - res);
+    if diff.x > diff.y && diff.x > diff.z {
+        res.x = -res.y -res.z;
+    } else if diff.y > diff.z {
+        res.y = -res.x -res.z;
+    } else {
+        res.z = -res.x -res.y;
+    }
+    res
 }
 
 fn update_tile(mouse: Res<MousePos>, mut materials: ResMut<Assets<TilemapMaterial>>) {
