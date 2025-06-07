@@ -137,21 +137,21 @@ fn fragment(in: VertexOutput) -> FragmentOutput {
     // Sample tile texture
     var color = vec4(0.0); // vec4(vec3(edge_color), 1.0);
     var depth = -10.0;
-    var tile_scale = vec2(1.0 / tilecount, 1.0/12.0);
+    var tile_scale = vec2(1.0 / tilecount, 1.0/6.0);
 
     for (var i = 0; i < 19; i += 1) {
         let hex = center_hex + OFFSETS[i];
         let hex_position = vec3(CUBE_TO_POSITION * hex, 0.0).xzy;
         let position = in.view_pos - position_world_to_view(hex_position);
-        if position.x < -0.6 || 0.6 < position.x {
+        if position.x < -0.6 || 0.6 < position.x || position.y < -0.8 || 1.0 < position.y {
             continue;
         }
-        let offset = (0.5 * position.xy * vec2(1.0,-1.0) + vec2(0.5,1.25));
+        let offset = (0.5 * position.xy * vec2(1.0,-1.0) + vec2(0.5,0.75));
 
         let tile = textureLoad(map_texture, vec2<i32>(hex.xy) & vec2(1023));
         let tile_id  = f32(tile.r);
         let tile_rot = f32(tile.g);
-        var new_color = textureSample(tileset_texture, tileset_sampler, (offset + vec2(tile_id, 2.0*tile_rot))*tile_scale);
+        var new_color = textureSample(tileset_texture, tileset_sampler, (offset + vec2(tile_id, tile_rot))*tile_scale);
         if new_color.a > 0.1 && depth < position.y {
             if all(abs(vec4(hex,0.0) - hover) < vec4(0.1)) {
                 new_color = blend(0.5 * rgb(1.0,0.0,1.0), new_color);
