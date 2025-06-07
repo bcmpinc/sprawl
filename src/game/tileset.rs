@@ -48,7 +48,7 @@ pub(super) fn plugin(app: &mut App) {
 fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     let size = Extent3d {
         width: TILE_SIZE * TILE_COUNT,
-        height: TILE_SIZE * 12,
+        height: TILE_SIZE * 6,
         ..default()
     };
 

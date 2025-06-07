@@ -23,7 +23,6 @@ const fn model(path: &'static str, edges: &'static str) -> Model {
 const MODELS: &[Model] = &[
     model("models/bridge-path-a.glb",           "......"),
     model("models/bridge-path-b.glb",           "......"),
-    model("models/bridge-path.glb",             "......"),
     model("models/building-archery.glb",        "......"),
     model("models/building-cabin.glb",          "......"),
     model("models/building-castle-path.glb",    "......"),
@@ -87,12 +86,12 @@ fn setup(
             GltfAssetLabel::Primitive{ mesh:0, primitive:0 }.from_asset(file.path)
         );
         for y in 0..6 {
-            let py = y as f32 * 4.0;
+            let py = y as f32 * 2.0;
             commands.spawn((
                 Tile::rotated(y),
                 Mesh3d(mesh.clone()),
                 MeshMaterial3d(material.clone()),
-                Transform::from_xyz(px + 1.0, py + 1.3 , -2.0),
+                Transform::from_xyz(px + 1.0, py + 0.7 , -2.0),
                 RenderLayers::layer(1),
             ));
         }

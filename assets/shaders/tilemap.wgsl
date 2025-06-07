@@ -143,10 +143,10 @@ fn fragment(in: VertexOutput) -> FragmentOutput {
         let hex = center_hex + OFFSETS[i];
         let hex_position = vec3(CUBE_TO_POSITION * hex, 0.0).xzy;
         let position = in.view_pos - position_world_to_view(hex_position);
-        if position.x < -0.6 || 0.6 < position.x || position.y < -0.8 || 1.0 < position.y {
+        if position.x < -0.6 || 0.6 < position.x || position.y < -0.6 || 0.85 < position.y {
             continue;
         }
-        let offset = (0.5 * position.xy * vec2(1.0,-1.0) + vec2(0.5,0.75));
+        let offset = (0.5 * position.xy * vec2(1.0,-1.0) + vec2(0.5,0.65));
 
         let tile = textureLoad(map_texture, vec2<i32>(hex.xy) & vec2(1023));
         let tile_id  = f32(tile.r);
