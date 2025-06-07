@@ -62,32 +62,34 @@ fn spawn_camera(mut commands: Commands) {
 
 fn spawn_light(mut commands: Commands) {
     commands.spawn((
-        DirectionalLight {
-            color: Color::srgb(1.0, 0.95, 0.85), // soft warm
-            illuminance: 3000.0,
-            ..default()
-        },
-        Transform::default().looking_to(-Vec3::new(1.0, 2.0, 1.0), Vec3::Y),
-        RenderLayers::from_layers(&[0,1]),
-    ));
-
-    commands.spawn((
-        DirectionalLight {
-            color: Color::srgb(0.6, 0.7, 1.0), // soft cool
-            illuminance: 500.0,
-            ..default()
-        },
-        Transform::default().looking_to(-Vec3::new(-1.0, 1.5, 1.0), Vec3::Y),
-        RenderLayers::from_layers(&[0,1]),
-    ));
-
-    commands.spawn((
-        DirectionalLight {
-            color: Color::WHITE,
-            illuminance: 1000.0,
-            ..default()
-        },
-        Transform::default().looking_to(-Vec3::new(0.0, 1.0, -1.0), Vec3::Y),
-        RenderLayers::from_layers(&[0,1]),
+        Transform::default(),
+        Tile::default(),
+        children![
+            (
+                DirectionalLight {
+                    color: Color::srgb(1.0, 0.95, 0.85), // soft warm
+                    illuminance: 3000.0,
+                    ..default()
+                },
+                Transform::default().looking_to(-Vec3::new(1.0, 2.0, 1.0), Vec3::Y),
+                RenderLayers::layer(1),
+            ),(
+                DirectionalLight {
+                    color: Color::srgb(0.6, 0.7, 1.0), // soft cool
+                    illuminance: 500.0,
+                    ..default()
+                },
+                Transform::default().looking_to(-Vec3::new(-1.0, 1.5, 1.0), Vec3::Y),
+                RenderLayers::layer(1),
+            ),(
+                DirectionalLight {
+                    color: Color::WHITE,
+                    illuminance: 1000.0,
+                    ..default()
+                },
+                Transform::default().looking_to(-Vec3::new(0.0, 1.0, -1.0), Vec3::Y),
+                RenderLayers::layer(1),
+            )
+        ],
     ));
 }
