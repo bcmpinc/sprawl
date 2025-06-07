@@ -1,4 +1,6 @@
-use std::mem::swap;
+use std::{
+    f64::consts::FRAC_PI_2, mem::swap
+};
 
 use bevy::{
     prelude::*,
@@ -21,7 +23,7 @@ pub(super) fn plugin(app: &mut App) {
         spawn_camera,
         spawn_light,
     ));
-    app.add_systems(Update, clamp_pitch);
+
     app.add_systems(Last, lag_transform);
 }
 
@@ -39,7 +41,10 @@ fn spawn_camera(mut commands: Commands) {
                 orbit: true,
                 zoom: true,
             },
-            orbit_constraint: default(),
+            orbit_constraint: OrbitConstraint::Fixed {
+                up: Vec3::Y,
+                pitch_limits: PitchLimits::new(0.5, FRAC_PI_2),
+            },
             zoom_limits: default(),
             smoothing: default(),
             sensitivity: default(),
@@ -69,6 +74,7 @@ fn spawn_light(mut commands: Commands) {
     commands.spawn((
         Transform::default(),
         Tile::default(),
+        InheritedVisibility::default(),
         children![
             (
                 DirectionalLight {
@@ -105,15 +111,5 @@ pub struct LaggedTransform(GlobalTransform);
 fn lag_transform(query: Query<(&mut GlobalTransform, &mut LaggedTransform)>) {
     for (mut trans, mut lag) in query {
         swap(&mut *trans, &mut lag.0);
-    }
-}
-
-fn clamp_pitch(mut query: Query<(&mut Transform, &LaggedTransform), With<MainCamera>>) {
-    let Ok((mut camera, lag)) = query.single_mut() else {return};
-    let (yaw, mut pitch, roll) = camera.rotation.to_euler(EulerRot::YXZ);
-    if pitch > -0.5 {
-        pitch = -0.5;
-        camera.translation = lag.0.translation();
-        camera.rotation = lag.0.rotation(); //Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
     }
 }
