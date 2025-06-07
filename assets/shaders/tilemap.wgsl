@@ -118,12 +118,12 @@ fn fragment(in: VertexOutput) -> FragmentOutput {
     let center_hex = round_hex(in.hexagon);
 
     // Calculate a hex outline.
-    let w = max3(fwidth(in.hexagon));
-    let edge_distance = 1.0 - max3(SUM_OTHER * abs(in.hexagon - center_hex));
-    let edge_color = clamp(edge_distance / w / 4.0 - 0.1, 0.0, 0.5);
+    // let w = max3(fwidth(in.hexagon));
+    // let edge_distance = 1.0 - max3(SUM_OTHER * abs(in.hexagon - center_hex));
+    // let edge_color = clamp(edge_distance / w / 4.0 - 0.1, 0.0, 0.5);
 
     // Sample tile texture
-    var color = vec4(vec3(edge_color), 1.0);
+    var color = vec4(0.0); // vec4(vec3(edge_color), 1.0);
     var depth = -10.0;
     var tile_scale = vec2(1.0 / tilecount, 1.0/12.0);
 
@@ -141,7 +141,6 @@ fn fragment(in: VertexOutput) -> FragmentOutput {
         let tile_rot = f32(tile.g);
         var new_color = textureSample(tileset_texture, tileset_sampler, (offset + vec2(tile_id, 2.0*tile_rot))*tile_scale);
         if new_color.a > 0.1 && depth < position.y {
-            new_color = multiply_alpha(new_color);
             if all(abs(vec4(hex,0.0) - hover) < vec4(0.1)) {
                 new_color = blend(0.5 * rgb(1.0,0.0,1.0), new_color);
             }
