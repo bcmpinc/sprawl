@@ -39,7 +39,7 @@ fn spawn_camera(mut commands: Commands) {
             enabled_motion: EnabledMotion{
                 pan: true,
                 orbit: true,
-                zoom: true,
+                zoom: false,
             },
             orbit_constraint: OrbitConstraint::Fixed {
                 up: Vec3::Y,
