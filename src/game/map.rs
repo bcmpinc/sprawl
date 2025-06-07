@@ -164,7 +164,13 @@ fn setup(
             tile_count: TILE_COUNT as f32,
         })),
         Transform::IDENTITY,
-    ));
+    )).observe(|_trigger: Trigger<Pointer<Over>>, mut mouse_pos: ResMut<MousePos>|{
+        mouse_pos.on_screen = true;
+        // println!("Mouse Hover {:?}", trigger);
+    }).observe(|_trigger: Trigger<Pointer<Out>>, mut mouse_pos: ResMut<MousePos>|{
+        mouse_pos.on_screen = false;
+        // println!("Mouse Out {:?}", trigger);
+    });
 }
 
 fn update_tile(mouse: Res<MousePos>, mut materials: ResMut<Assets<TilemapMaterial>>) {

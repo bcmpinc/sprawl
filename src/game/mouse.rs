@@ -1,23 +1,26 @@
 use bevy::{
-    prelude::*,
     picking::{
         backend::{ray::RayMap, HitData, PointerHits},
         PickSet
     },
+    prelude::*,
+    render::extract_resource::{ExtractResource, ExtractResourcePlugin},
 };
 
 use super::prelude::*;
 
-#[derive(Resource, Default, Reflect)]
+#[derive(Resource, Default, Reflect, ExtractResource, Clone)]
 #[reflect(Resource)]
 pub struct MousePos {
     pub hex_cell: IVec3,
     pub on_screen: bool,
+    pub click: bool,
 }
 
 pub(super) fn plugin(app: &mut App) {
     app.init_resource::<MousePos>();
     app.register_type::<MousePos>();
+    app.add_plugins(ExtractResourcePlugin::<MousePos>::default());
     app.add_systems(PreUpdate, tracking.in_set(PickSet::Backend));
 }
 
@@ -45,7 +48,7 @@ fn round_hex(hex: Vec3) -> Vec3 {
 /// Casts rays into the scene using [`MeshPickingSettings`] and sends [`PointerHits`] events.
 pub fn tracking(
     ray_map: Res<RayMap>,
-    main_camera: Query<Entity, With<MainCamera>>,
+    main_camera: Query<&Camera, With<MainCamera>>,
     map: Query<Entity, With<TileMap>>,
     mut output: EventWriter<PointerHits>,
     mut mouse_pos: ResMut<MousePos>,
@@ -53,7 +56,7 @@ pub fn tracking(
     mouse_pos.on_screen = false;
     let Ok(entity) = map.single() else {return};
     for (&ray_id, &ray) in ray_map.iter() {
-        if main_camera.get(ray_id.camera).is_err() {
+        let Ok(camera) = main_camera.get(ray_id.camera) else {
             continue;
         };
         let depth = ray.origin.y / ray.direction.y;
@@ -72,7 +75,7 @@ pub fn tracking(
         output.write(PointerHits{
             pointer: ray_id.pointer,
             picks,
-            order: -1.0,
+            order: camera.order as f32 - 0.1,
         });
 
         // Update hovered hexagon
