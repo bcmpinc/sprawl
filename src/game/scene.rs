@@ -43,7 +43,7 @@ fn spawn_camera(mut commands: Commands) {
             },
             orbit_constraint: OrbitConstraint::Fixed {
                 up: Vec3::Y,
-                pitch_limits: PitchLimits::new(0.5, FRAC_PI_2),
+                pitch_limits: PitchLimits::new(0.42, FRAC_PI_2),
             },
             zoom_limits: default(),
             smoothing: default(),

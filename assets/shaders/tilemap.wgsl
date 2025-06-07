@@ -93,7 +93,7 @@ fn sum(v: vec3<f32>) -> f32 {
     return v.x+v.y+v.z;
 }
 
-const OFFSETS: array<vec3<f32>, 7> = array<vec3<f32>, 7>(
+const OFFSETS: array<vec3<f32>, 19> = array<vec3<f32>, 19>(
     vec3<f32>( 0, 0, 0),
     vec3<f32>(-1, 1, 0),
     vec3<f32>( 1,-1, 0),
@@ -101,6 +101,18 @@ const OFFSETS: array<vec3<f32>, 7> = array<vec3<f32>, 7>(
     vec3<f32>( 1, 0,-1),
     vec3<f32>( 0,-1, 1),
     vec3<f32>( 0, 1,-1),
+    vec3<f32>( 2,-1,-1),
+    vec3<f32>(-1, 2,-1),
+    vec3<f32>(-1,-1, 2),
+    vec3<f32>(-2, 1, 1),
+    vec3<f32>( 1,-2, 1),
+    vec3<f32>( 1, 1,-2),
+    vec3<f32>(-2, 2, 0),
+    vec3<f32>( 2,-2, 0),
+    vec3<f32>(-2, 0, 2),
+    vec3<f32>( 2, 0,-2),
+    vec3<f32>( 0,-2, 2),
+    vec3<f32>( 0, 2,-2),
 );
 
 fn multiply_alpha(c:vec4<f32>) -> vec4<f32> {
@@ -127,11 +139,11 @@ fn fragment(in: VertexOutput) -> FragmentOutput {
     var depth = -10.0;
     var tile_scale = vec2(1.0 / tilecount, 1.0/12.0);
 
-    for (var i = 0; i < 7; i += 1) {
+    for (var i = 0; i < 19; i += 1) {
         let hex = center_hex + OFFSETS[i];
         let hex_position = vec3(CUBE_TO_POSITION * hex, 0.0).xzy;
         let position = in.view_pos - position_world_to_view(hex_position);
-        if position.x < -1.0 || 1.0 < position.x {
+        if position.x < -0.6 || 0.6 < position.x {
             continue;
         }
         let offset = (0.5 * position.xy * vec2(1.0,-1.0) + vec2(0.5,1.25));
