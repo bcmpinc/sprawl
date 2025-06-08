@@ -63,7 +63,7 @@ fn spawn_camera(mut commands: Commands) {
             ..OrthographicProjection::default_3d()
         }),
         Transform{
-            rotation: Quat::from_rotation_x(-1.0), // from_euler(EulerRot::YXZ, 0.0, -1.0, 0.0),
+            rotation: Quat::from_euler(EulerRot::YXZ, 0.05, -0.7, 0.0),
             translation: Vec3::ZERO,
             scale: Vec3::ONE,
         },

@@ -9,12 +9,11 @@ use bevy::{
         view::RenderLayers
     }
 };
+use widget::button_small;
 
-use crate::theme::palette;
+use crate::theme::prelude::*;
 
 use super::prelude::*;
-
-const TILESET_PREVIEW: bool = true;
 
 #[derive(Resource)]
 pub struct Tileset(pub Handle<Image>);
@@ -45,7 +44,11 @@ pub(super) fn plugin(app: &mut App) {
     ));
 }
 
-fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
+fn setup(
+    mut commands: Commands,
+    mut images: ResMut<Assets<Image>>,
+    mut atlasses: ResMut<Assets<TextureAtlasLayout>>,
+) {
     let size = Extent3d {
         width: TILE_SIZE * TILE_COUNT,
         height: TILE_SIZE * 6,
@@ -88,37 +91,56 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
         RenderLayers::layer(1),
     ));
 
-    if TILESET_PREVIEW {
-        commands.spawn((
-            Name::new("GUI Container"),
+    let atlas = TextureAtlasLayout::from_grid(uvec2(TILE_SIZE, TILE_SIZE), TILE_COUNT, 6, None, None);
+    let layout = atlasses.add(atlas);
+
+    commands.spawn((
+        Name::new("GUI Container"),
+        Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::FlexEnd,
+            align_items: AlignItems::FlexEnd,
+            padding: UiRect::all(Val::Px(4.0)),
+            ..default()
+        },
+        Pickable::IGNORE,
+    )).with_children(|parent| {
+        parent.spawn((
+            Name::new("Tileset preview"),
+            ImageNode::from_atlas_image(
+                image_handle.clone(),
+                TextureAtlas {
+                    layout,
+                    index: 0
+                }
+            ),
             Node {
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
-                flex_direction: FlexDirection::Column,
-                justify_content: JustifyContent::FlexEnd,
-                align_items: AlignItems::Center,
-                padding: UiRect::all(Val::Px(4.0)),
+                width: Val::Px(TILE_SIZE as f32),
+                height: Val::Px(TILE_SIZE as f32),
                 ..default()
             },
-            Pickable::IGNORE,
-        )).with_children(|parent| {
-            parent.spawn((
-                Name::new("Tileset preview"),
-                ImageNode::new(
-                    image_handle.clone(),
-                ).with_rect(
-                    Rect::new(0.0, 0.0, size.width as f32, TILE_SIZE as f32)
-                ),
-                Node {
-                    width: Val::Px(size.width as f32 / 2.0),
-                    height: Val::Px(TILE_SIZE as f32 / 2.0),
-                    ..default()
-                },
-                BackgroundColor(palette::BUTTON_HOVERED_BACKGROUND),
-                Outline::new(Val::Px(2.0), Val::ZERO, palette::BUTTON_PRESSED_BACKGROUND),
-            ));
+            BackgroundColor(ui_palette::BUTTON_BACKGROUND),
+            Button,
+            ui_palette::BUTTON_INTERACTION_PALETTE,
+            BorderRadius::all(Val::Px(30.0)),
+        )).observe(|trigger: Trigger<Pointer<Click>>, mut mouse_pos: ResMut<MousePos>| {
+            let dir = Vec2::ONE - 2.0 * trigger.hit.position.unwrap().xy();
+            if dir.x < -dir.y.abs() {
+                mouse_pos.selected_tile.y -= 1;
+            }
+            if dir.x >  dir.y.abs() {
+                mouse_pos.selected_tile.y += 1;
+            }
+            if dir.y < -dir.x.abs() {
+                mouse_pos.selected_tile.x -= 1;
+            }
+            if dir.y >  dir.x.abs() {
+                mouse_pos.selected_tile.x += 1;
+            }
         });
-    }
+    });
 }
 
 fn copy_transform(main: Query<&Transform, With<MainCamera>>, mut tiles: Query<(&mut Transform, &Tile), Without<MainCamera>>) {

@@ -8,7 +8,7 @@ use bevy::{
     ui::Val::*,
 };
 
-use crate::theme::{interaction::InteractionPalette, palette::*};
+use crate::theme::palette::*;
 
 /// A root UI node that fills the window and centers its content.
 pub fn ui_root(name: impl Into<Cow<'static, str>>) -> impl Bundle {
@@ -114,11 +114,7 @@ where
                     Name::new("Button Inner"),
                     Button,
                     BackgroundColor(BUTTON_BACKGROUND),
-                    InteractionPalette {
-                        none: BUTTON_BACKGROUND,
-                        hovered: BUTTON_HOVERED_BACKGROUND,
-                        pressed: BUTTON_PRESSED_BACKGROUND,
-                    },
+                    BUTTON_INTERACTION_PALETTE,
                     children![(
                         Name::new("Button Text"),
                         Text(text),

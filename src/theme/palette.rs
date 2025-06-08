@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use super::prelude::InteractionPalette;
+
 const fn rgb(r: u8, g: u8, b: u8) -> Color {
     Color::srgb(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0)
 }
@@ -11,3 +13,9 @@ pub const BUTTON_TEXT: Color = rgb(63,23,126);
 pub const BUTTON_BACKGROUND: Color = rgb(203,190,249);
 pub const BUTTON_HOVERED_BACKGROUND: Color = rgb(245,161,247);
 pub const BUTTON_PRESSED_BACKGROUND: Color = rgb(186,154,245);
+
+pub const BUTTON_INTERACTION_PALETTE: InteractionPalette = InteractionPalette{
+    none: BUTTON_BACKGROUND,
+    hovered: BUTTON_HOVERED_BACKGROUND,
+    pressed: BUTTON_PRESSED_BACKGROUND,
+};
