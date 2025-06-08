@@ -20,6 +20,7 @@ const fn model(path: &'static str, edges: &'static str) -> Model {
     Model{path, edges}
 }
 
+pub const TILE_COUNT: u32 = MODELS.len() as u32;
 const MODELS: &[Model] = &[
     model("models/bridge-path-a.glb",           "......"),
     model("models/bridge-path-b.glb",           "......"),

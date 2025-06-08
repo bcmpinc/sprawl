@@ -8,13 +8,13 @@ mod tileset;
 
 #[allow(unused_imports)]
 mod prelude {
+    pub use super::load_tiles::TILE_COUNT;
     pub use super::map::TileMap;
     pub use super::mouse::MousePos;
     pub use super::scene::MainCamera;
     pub use super::tileset::{Tileset, Tile};
 
     pub const TILE_SIZE: u32 = 128;
-    pub const TILE_COUNT: u32 = 48;
     pub const MAP_SIZE: u32 = 1024;
 }
 

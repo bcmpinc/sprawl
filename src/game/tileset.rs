@@ -9,7 +9,6 @@ use bevy::{
         view::RenderLayers
     }
 };
-use widget::button_small;
 
 use crate::theme::prelude::*;
 
@@ -41,6 +40,7 @@ pub(super) fn plugin(app: &mut App) {
     ));
     app.add_systems(Update, (
         copy_transform,
+        (keyboard_input, update_selected_tile).chain(),
     ));
 }
 
@@ -128,17 +128,32 @@ fn setup(
         )).observe(|trigger: Trigger<Pointer<Click>>, mut mouse_pos: ResMut<MousePos>| {
             let dir = Vec2::ONE - 2.0 * trigger.hit.position.unwrap().xy();
             if dir.x < -dir.y.abs() {
-                mouse_pos.selected_tile.y -= 1;
-            }
-            if dir.x >  dir.y.abs() {
                 mouse_pos.selected_tile.y += 1;
             }
+            if dir.x >  dir.y.abs() {
+                mouse_pos.selected_tile.y += 5;
+            }
             if dir.y < -dir.x.abs() {
-                mouse_pos.selected_tile.x -= 1;
+                mouse_pos.selected_tile.x += TILE_COUNT - 1;
             }
             if dir.y >  dir.x.abs() {
                 mouse_pos.selected_tile.x += 1;
             }
+            mouse_pos.selected_tile %= uvec2(TILE_COUNT, 6);
+        }).observe(|trigger: Trigger<Pointer<Scroll>>, mut mouse_pos: ResMut<MousePos>| {
+            if trigger.x < 0.0 {
+                mouse_pos.selected_tile.y += 1;
+            }
+            if trigger.x > 0.0 {
+                mouse_pos.selected_tile.y += 5;
+            }
+            if trigger.y < 0.0 {
+                mouse_pos.selected_tile.x += TILE_COUNT - 1;
+            }
+            if trigger.y > 0.0 {
+                mouse_pos.selected_tile.x += 1;
+            }
+            mouse_pos.selected_tile %= uvec2(TILE_COUNT, 6);
         });
     });
 }
@@ -149,4 +164,29 @@ fn copy_transform(main: Query<&Transform, With<MainCamera>>, mut tiles: Query<(&
     for (mut transform, tile) in tiles.iter_mut() {
         transform.rotation = base * tile.rotation;
     }
+}
+
+fn update_selected_tile(mouse_pos: Res<MousePos>, mut image: Query<&mut ImageNode, With<Button>>) {
+    let Ok(mut image) = image.single_mut() else {return};
+    let index = mouse_pos.selected_tile;
+    image.texture_atlas.as_mut().unwrap().index = (index.x + index.y * TILE_COUNT) as usize;
+}
+
+fn keyboard_input(
+    keys: Res<ButtonInput<KeyCode>>,
+    mut mouse_pos: ResMut<MousePos>,
+) {
+    if keys.just_pressed(KeyCode::ArrowLeft) {
+        mouse_pos.selected_tile.y += 1;
+    }
+    if keys.just_released(KeyCode::ArrowRight) {
+        mouse_pos.selected_tile.y += 5;
+    }
+    if keys.just_pressed(KeyCode::ArrowUp) {
+        mouse_pos.selected_tile.x += TILE_COUNT - 1;
+    }
+    if keys.just_pressed(KeyCode::ArrowDown) {
+        mouse_pos.selected_tile.x += 1;
+    }
+    mouse_pos.selected_tile %= uvec2(TILE_COUNT, 6);
 }

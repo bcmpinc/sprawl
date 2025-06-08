@@ -17,7 +17,7 @@ pub struct MousePos {
     pub on_screen: bool,
     pub click_started: Option<Vec2>,
     pub click: bool,
-    pub selected_tile: IVec2,
+    pub selected_tile: UVec2,
 }
 
 pub(super) fn plugin(app: &mut App) {
