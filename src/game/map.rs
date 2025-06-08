@@ -80,6 +80,7 @@ pub struct TilemapMaterial {
     #[uniform(3)] hover_tile: Vec4,
     #[uniform(4)] tile_size: f32,
     #[uniform(5)] tile_count: f32,
+    #[uniform(6)] selected_tile: UVec2,
 }
 
 #[derive(TypePath,AsBindGroup,Resource,Clone,ExtractResource)]
@@ -162,6 +163,7 @@ fn setup(
             hover_tile: Vec4::ZERO,
             tile_size: TILE_SIZE as f32,
             tile_count: TILE_COUNT as f32,
+            selected_tile: UVec2::ZERO,
         })),
         Transform::IDENTITY,
     )).observe(|trigger: Trigger<Pointer<Move>>, mut mouse_pos: ResMut<MousePos>|{
@@ -219,7 +221,8 @@ fn update_tile(mouse: Res<MousePos>, mut materials: ResMut<Assets<TilemapMateria
     for mat in materials.iter_mut() {
         mat.1.hover_tile = tile.extend(
             if mouse.on_screen {0.0} else {1.0}
-        ) ;
+        );
+        mat.1.selected_tile = mouse.selected_tile;
     }
 }
 
