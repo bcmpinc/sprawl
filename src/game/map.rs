@@ -10,8 +10,8 @@ use bevy::{
         mesh::PrimitiveTopology,
         render_asset::RenderAssets,
         render_graph::{Node, RenderGraph, RenderLabel},
-        render_resource::{AsBindGroup, BindGroup, BindGroupLayout, CachedComputePipelineId, ComputePassDescriptor, ComputePipelineDescriptor, Extent3d, PipelineCache, ShaderRef, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages},
-        renderer::RenderDevice,
+        render_resource::{AsBindGroup, BindGroup, BindGroupLayout, CachedComputePipelineId, ComputePassDescriptor, ComputePipelineDescriptor, Extent3d, Origin3d, PipelineCache, ShaderRef, TexelCopyBufferLayout, TexelCopyTextureInfo, TextureAspect, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages},
+        renderer::{RenderDevice, RenderQueue},
         storage::GpuShaderStorageBuffer,
         texture::{FallbackImage, GpuImage},
         view::NoFrustumCulling,
@@ -49,6 +49,10 @@ impl Plugin for MapPlugin {
 
     fn finish(&self, app: &mut App) {
         if let Some(render_app) = app.get_sub_app_mut(RenderApp) {
+            // Add code for updating clicked tiles.
+            render_app.add_systems(Render, handle_click.in_set(RenderSet::Queue));
+
+            // Inject the compute kernel.
             render_app.init_resource::<KernelPipeline>();
             render_app.add_systems(Render, prepare_compute.in_set(RenderSet::Prepare));
 
@@ -123,7 +127,7 @@ fn setup(
     for _ in 0..MAP_SIZE * MAP_SIZE {
         map_data.push(rand::thread_rng().gen_range(0..44));
         map_data.push(rand::thread_rng().gen_range(0..6));
-        // Init xorshift16 with 0 zero seed.
+        // Init xorshift16 with non-zero seed.
         let prng: u32 = rand::thread_rng().gen_range(1..65536);
         map_data.push((prng / 256) as u8);
         map_data.push((prng % 256) as u8);
@@ -186,7 +190,6 @@ fn setup(
     }).observe(|trigger: Trigger<Pointer<Released>>, mut mouse_pos: ResMut<MousePos>|{
         match mouse_pos.click_started {
             Some(start) if trigger.pointer_location.position.distance_squared(start) <= 10.0 && trigger.button == PointerButton::Primary => {
-                println!("Clicked!");
                 mouse_pos.click = true;
                 mouse_pos.click_started = None;
             }
@@ -324,4 +327,52 @@ impl Node for DispatchKernel {
         }
         Ok(())
     }
+}
+
+fn handle_click(
+    queue: Res<RenderQueue>,
+    gpu_images: Res<RenderAssets<GpuImage>>,
+    updates: Res<MousePos>,
+    shader_data: Option<Res<ShaderData>>,
+) {
+    if !updates.click {return} // Bail out if there was no click.
+
+    // Find the necessary resources
+    let Some(shader_data) = shader_data else {return};
+    let Some(image) = gpu_images.get(shader_data.tiles.id()) else {return};
+
+    // Prepare data
+    let prng: u32 = rand::thread_rng().gen_range(1..65536);
+    let map_data = [
+        updates.selected_tile.x as u8,
+        updates.selected_tile.y as u8,
+        // Init xorshift16 with non-zero seed.
+        (prng / 256) as u8,
+        (prng % 256) as u8,
+    ];
+
+    // Queue the pixel write
+    queue.write_texture(
+        TexelCopyTextureInfo{
+            texture: &image.texture,
+            mip_level: 0,
+            origin: Origin3d {
+                x: (updates.hex_cell.x & 1023) as u32,
+                y: (updates.hex_cell.y & 1023) as u32,
+                z: 0,
+            },
+            aspect: TextureAspect::All,
+        },
+        &map_data,
+        TexelCopyBufferLayout{
+            offset: 0,
+            bytes_per_row: Some(4),
+            rows_per_image: Some(1),
+        },
+        Extent3d{
+            width: 1,
+            height: 1,
+            depth_or_array_layers: 1,
+        }
+    );
 }
