@@ -12,6 +12,7 @@
 @group(2) @binding(3) var<uniform> hover: vec4<f32>;
 @group(2) @binding(4) var<uniform> tilesize: f32;
 @group(2) @binding(5) var<uniform> tilecount: f32;
+@group(2) @binding(6) var<uniform> selected: vec2<u32>;
 
 struct VertexInput {
     @location(0) clip_pos: vec3<f32>,
@@ -148,13 +149,18 @@ fn fragment(in: VertexOutput) -> FragmentOutput {
         }
         let offset = (0.5 * position.xy * vec2(1.0,-1.0) + vec2(0.5,0.65));
 
-        let tile = textureLoad(map_texture, vec2<i32>(hex.xy) & vec2(1023));
+        var tile = selected;
+        let is_hover = all(abs(vec4(hex,0.0) - hover) < vec4(0.1));
+        if !is_hover {
+            tile = textureLoad(map_texture, vec2<i32>(hex.xy) & vec2(1023)).rg;
+        }
         let tile_id  = f32(tile.r);
         let tile_rot = f32(tile.g);
+
         var new_color = textureSample(tileset_texture, tileset_sampler, (offset + vec2(tile_id, tile_rot))*tile_scale);
         if new_color.a > 0.1 && depth < position.y {
-            if all(abs(vec4(hex,0.0) - hover) < vec4(0.1)) {
-                new_color = blend(0.5 * rgb(1.0,0.0,1.0), new_color);
+            if is_hover {
+                new_color = blend(0.2 * rgb(1.0,0.0,1.0), new_color);
             }
             color = blend(new_color, color);
             depth = position.y;
