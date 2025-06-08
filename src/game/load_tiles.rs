@@ -13,6 +13,7 @@ pub(super) fn plugin(app: &mut App) {
 
 struct Model {
     path: &'static str,
+    #[allow(unused)]
     edges: &'static str,
 }
 
